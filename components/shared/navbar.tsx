@@ -22,7 +22,7 @@ export default function Navbar() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-[79px] max-w-7xl items-center justify-between px-6">
         {/* LEFT */}
         <div className="flex items-center gap-8">
           {/* Logo */}

@@ -1,6 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 const agents = [
   {
@@ -64,6 +65,7 @@ export default function AgentsPage() {
 
 
 function AgentCard({ agent }: { agent: any }) {
+    const router = useRouter();
   return (
     <motion.div
       variants={{
@@ -71,6 +73,7 @@ function AgentCard({ agent }: { agent: any }) {
         visible: { opacity: 1, y: 0, scale: 1 },
       }}
       whileHover={{ y: -6 }}
+      onClick={() => router.push("/dashboard/123/agents/123")}
       transition={{ type: "spring", stiffness: 260, damping: 20 }}
       className="group relative overflow-hidden rounded-2xl border bg-background shadow-sm
                  hover:shadow-xl transition-shadow cursor-pointer"
