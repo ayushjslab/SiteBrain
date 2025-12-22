@@ -18,6 +18,7 @@ import {
 } from "react-icons/hi";
 import { BsMoonStarsFill, BsSunFill } from "react-icons/bs";
 import { useEffect, useState } from "react";
+import { redirect } from "next/navigation";
 
 export default function ProfilePopover() {
   const { theme, setTheme } = useTheme();
@@ -52,11 +53,13 @@ export default function ProfilePopover() {
       >
         <div className="space-y-1">
           <MenuItem
+            url="/dashboard"
             icon={<HiOutlineViewGrid className="text-lg" />}
             label="Dashboard"
           />
 
           <MenuItem
+            url="account-settings"
             icon={<HiOutlineUser className="text-lg" />}
             label="Account Settings"
           />
@@ -79,6 +82,7 @@ export default function ProfilePopover() {
           </button>
 
           <MenuItem
+            url="/support"
             icon={<HiOutlineSupport className="text-lg" />}
             label="Support"
           />
@@ -86,6 +90,7 @@ export default function ProfilePopover() {
           <div className="my-1 h-px bg-black/10 dark:bg-white/10" />
 
           <MenuItem
+            url="/logout"
             icon={<HiOutlineLogout className="text-lg" />}
             label="Logout"
             danger
@@ -99,14 +104,17 @@ export default function ProfilePopover() {
 function MenuItem({
   icon,
   label,
+  url,
   danger = false,
 }: {
   icon: React.ReactNode;
   label: string;
+  url: string;
   danger?: boolean;
 }) {
   return (
     <button
+      onClick={url !== "/logout" ? () => redirect(url) : () => {}}
       className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm transition cursor-pointer
         ${
           danger
