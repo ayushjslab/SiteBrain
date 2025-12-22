@@ -134,7 +134,9 @@ const lastNavItems = [
 export function Sidebar() {
   const [open, setOpen] = useState(false);
   const pathName = usePathname();
-  const isAgentPage = /^\/dashboard\/[^/]+\/agents\/[^/]+$/.test(pathName);
+  const isAgentPage = /^\/dashboard\/[^/]+\/agents\/[^/]+(\/.*)?$/.test(
+    pathName
+  );
 
   return (
     <aside
@@ -259,30 +261,29 @@ function SidebarItem({
   const pathName = usePathname();
   const router = useRouter();
   return (
-   <button
-  onClick={() => router.push(url)}
-  className={`relative flex items-center gap-3 rounded-lg px-3 pr-12 py-2 transition-colors cursor-pointer
+    <button
+      onClick={() => router.push(url)}
+      className={`relative flex items-center gap-3 rounded-lg px-3 pr-12 py-2 transition-colors cursor-pointer
     ${
       pathName.includes(label.toLowerCase())
         ? "bg-gray-300 text-black dark:text-background"
         : "text-black dark:text-white hover:text-white hover:bg-black dark:hover:bg-white dark:hover:text-black"
     }`}
->
-  <Icon className="h-4 w-4 shrink-0 ml-1" />
+    >
+      <Icon className="h-4 w-4 shrink-0 ml-1" />
 
-  <span
-    className={`flex flex-1 items-center overflow-hidden whitespace-nowrap transition-all duration-300
+      <span
+        className={`flex flex-1 items-center overflow-hidden whitespace-nowrap transition-all duration-300
       ${open ? "opacity-100 max-w-50" : "opacity-0 max-w-0"}`}
-  >
-    <span className="truncate">{label}</span>
-  </span>
+      >
+        <span className="truncate">{label}</span>
+      </span>
 
-  {soon && open && (
-    <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-yellow-500 px-1.5 py-0.5 text-[9px] font-semibold text-black">
-      SOON
-    </span>
-  )}
-</button>
-
+      {soon && open && (
+        <span className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-yellow-500 px-1.5 py-0.5 text-[9px] font-semibold text-black">
+          SOON
+        </span>
+      )}
+    </button>
   );
 }
