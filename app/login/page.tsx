@@ -4,17 +4,38 @@ import { motion } from "framer-motion";
 import { FcGoogle } from "react-icons/fc";
 import { HiHome } from "react-icons/hi";
 import { BsMoonStarsFill, BsSunFill } from "react-icons/bs";
-import { RiSparkling2Fill } from "react-icons/ri";
 import { useTheme } from "next-themes";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import { signIn, useSession } from "next-auth/react";
+import { toast } from "sonner";
+import Loading from "@/components/shared/loading";
 export default function LoginPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
+   const { status } = useSession();
+  
+    if (status === "loading") {
+      return <Loading />;
+    }
+  
+    if (status === "authenticated") {
+      redirect("/create-workspace");
+    }
+
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  async function handleLogin () {
+    try {
+      await signIn("google", {callbackUrl: "/"})
+    } catch (error) {
+      console.log(error)
+      toast.error("Failed to login")
+    }
+  }
 
   if (!mounted) return null;
 
@@ -88,6 +109,7 @@ export default function LoginPage() {
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.97 }}
           transition={{ type: "spring", stiffness: 300 }}
+          onClick={handleLogin}
           className="mt-8 flex w-full items-center justify-center gap-3 rounded-xl border border-black/20 dark:border-white/20 bg-white dark:bg-black px-4 py-3 text-sm font-medium text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all cursor-pointer"
         >
           <FcGoogle className="text-xl" />
