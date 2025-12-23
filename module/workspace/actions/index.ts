@@ -4,6 +4,8 @@ import { connectDB } from "@/lib/connectDB";
 import Workspace from "@/models/workspace";
 import User from "@/models/user";
 
+
+type Role = "admin" | "member"
 export async function createWorkspace(createdBy: string, name: string) {
   try {
     if (!createdBy || !name) {
@@ -113,3 +115,4 @@ export async function getUserWorkspaces(userId: string) {
     };
   }
 }
+

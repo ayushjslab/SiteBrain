@@ -13,7 +13,7 @@ const workspaceSchema = new Schema(
       required: true,
     },
 
-    joinCode: Number,
+    joinCode: String,
 
     agentsLimit: {
       type: Number,

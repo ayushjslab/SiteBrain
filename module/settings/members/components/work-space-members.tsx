@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { InviteMemberDialog } from "./invite-member-dialog"
+import  InviteWorkspaceDialog from "./invite-member-dialog"
 import { Edit, Trash2Icon } from "lucide-react"
 
 const members = [
@@ -34,7 +34,6 @@ export default function WorkspaceMembersPage() {
 
   return (
     <div className="px-6 py-8">
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -102,7 +101,7 @@ export default function WorkspaceMembersPage() {
         </Table>
       </motion.div>
 
-      <InviteMemberDialog open={open} onOpenChange={setOpen} />
+      <InviteWorkspaceDialog open={open} onOpenChange={setOpen} />
     </div>
   )
 }

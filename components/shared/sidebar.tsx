@@ -31,35 +31,14 @@ import {
 import { useState } from "react";
 import { LucideIcon } from "lucide-react";
 import { SidebarItemDropdown } from "./sidebard-item-dropdown";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { SiStreamrunners } from "react-icons/si";
 import { SiGoogledisplayandvideo360 } from "react-icons/si";
 import { IconType } from "react-icons/lib";
 import { MdContactPhone } from "react-icons/md";
 import { RiNotionFill } from "react-icons/ri";
 
-const workspaceSettings = [
-  {
-    label: "General",
-    url: "/dashboard/123/settings/general",
-    Icon: SlidersHorizontal,
-  },
-  {
-    label: "Members",
-    url: "/dashboard/123/settings/members",
-    Icon: Users,
-  },
-  {
-    label: "Billing",
-    url: "/dashboard/123/settings/billing",
-    Icon: CreditCard,
-  },
-  {
-    label: "Plans",
-    url: "/dashboard/123/settings/plans",
-    Icon: Layers,
-  },
-];
+
 const navItems = [
   {
     label: "Activity",
@@ -73,7 +52,7 @@ const navItems = [
       {
         label: "Leads",
         url: "/",
-        Icon: Users, // ⭐ BEST PICK
+        Icon: Users,
         soon: true,
       },
     ],
@@ -133,10 +112,35 @@ const lastNavItems = [
 
 export function Sidebar() {
   const [open, setOpen] = useState(false);
+  const {workspaceId} = useParams<{ workspaceId: string }>()
   const pathName = usePathname();
   const isAgentPage = /^\/dashboard\/[^/]+\/agents\/[^/]+(\/.*)?$/.test(
     pathName
   );
+
+
+  const workspaceSettings = [
+  {
+    label: "General",
+    url: `/dashboard/${workspaceId}/settings/general`,
+    Icon: SlidersHorizontal,
+  },
+  {
+    label: "Members",
+    url: `/dashboard/${workspaceId}/settings/members`,
+    Icon: Users,
+  },
+  {
+    label: "Billing",
+    url: `/dashboard/${workspaceId}/settings/billing`,
+    Icon: CreditCard,
+  },
+  {
+    label: "Plans",
+    url: `/dashboard/${workspaceId}/settings/plans`,
+    Icon: Layers,
+  },
+];
 
   return (
     <aside
@@ -187,14 +191,14 @@ export function Sidebar() {
             open={open}
             icon={Users}
             label="Agents"
-            url="/dashboard/123/agents"
+            url={`/dashboard${workspaceId}/agents`}
           />
 
           <SidebarItem
             open={open}
             icon={BarChart3}
             label="Usage"
-            url="/dashboard/123/usage"
+            url={`/dashboard${workspaceId}/usage`}
           />
 
           <SidebarItemDropdown

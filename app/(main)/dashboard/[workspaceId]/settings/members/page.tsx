@@ -1,5 +1,4 @@
 import WorkspaceMembersPage from "@/module/settings/members/components/work-space-members";
-import React from "react";
 
 const WorkspaceMembers = () => {
   return (
