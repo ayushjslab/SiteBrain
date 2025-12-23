@@ -11,18 +11,21 @@ import {
 
 import {
   HiOutlineUser,
-  HiOutlineCog,
   HiOutlineSupport,
   HiOutlineLogout,
   HiOutlineViewGrid,
 } from "react-icons/hi";
 import { BsMoonStarsFill, BsSunFill } from "react-icons/bs";
 import { useEffect, useState } from "react";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
+import { toast } from "sonner";
+import { signOut, useSession } from "next-auth/react";
 
 export default function ProfilePopover() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
+  const { data: user } = useSession();
 
   useEffect(() => {
     setMounted(true);
@@ -36,21 +39,48 @@ export default function ProfilePopover() {
         <motion.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="relative h-10 cursor-pointer w-10 overflow-hidden rounded-full border border-black/20 dark:border-white/20"
+          className="relative h-10 w-10 cursor-pointer overflow-hidden rounded-full border border-black/20 dark:border-white/20"
         >
           <Image
-            src={theme === "light" ? "/dark-icon.png" : "/light-icon.png"}
-            width={35}
-            height={35}
-            alt="icon"
+            src={user?.user?.image || "/avatar-placeholder.png"}
+            alt="Profile"
+            fill
+            className="object-cover"
+            sizes="40px"
+            priority
           />
         </motion.button>
       </PopoverTrigger>
 
       <PopoverContent
         align="end"
-        className="w-56 rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-2 shadow-xl"
+        className="w-64 rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-2 shadow-xl"
       >
+        {/* 👤 User Bio */}
+        <div className="flex items-center gap-3 rounded-xl px-3 py-2">
+          <div className="relative h-10 w-10 overflow-hidden rounded-full border border-black/20 dark:border-white/20">
+            <Image
+              src={user?.user?.image || "/avatar-placeholder.png"}
+              alt="Profile"
+              fill
+              className="object-cover"
+              sizes="40px"
+            />
+          </div>
+
+          <div className="flex flex-col overflow-hidden">
+            <span className="truncate text-sm font-semibold text-black dark:text-white">
+              {user?.user?.name || "User"}
+            </span>
+            <span className="truncate text-xs text-black/60 dark:text-white/60">
+              {user?.user?.email || "user@email.com"}
+            </span>
+          </div>
+        </div>
+
+        <div className="my-2 h-px bg-black/10 dark:bg-white/10" />
+
+        {/* 📂 Menu Items */}
         <div className="space-y-1">
           <MenuItem
             url="/dashboard"
@@ -59,7 +89,7 @@ export default function ProfilePopover() {
           />
 
           <MenuItem
-            url="account-settings"
+            url="/account-settings"
             icon={<HiOutlineUser className="text-lg" />}
             label="Account Settings"
           />
@@ -112,9 +142,22 @@ function MenuItem({
   url: string;
   danger?: boolean;
 }) {
+  const router = useRouter();
   return (
     <button
-      onClick={url !== "/logout" ? () => redirect(url) : () => {}}
+      onClick={
+        url !== "/logout"
+          ? () => router.push(url)
+          : async () => {
+              try {
+                await signOut({ callbackUrl: "/login" });
+                toast.success("Logout successfully");
+              } catch (error) {
+                console.log(error);
+                toast.error("Failed to logout");
+              }
+            }
+      }
       className={`flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm transition cursor-pointer
         ${
           danger

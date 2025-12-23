@@ -8,6 +8,7 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+   
   }, []);
 
   console.log(theme)

@@ -13,31 +13,30 @@ import Loading from "@/components/shared/loading";
 export default function LoginPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
-
-   const { status } = useSession();
-  
-    if (status === "loading") {
-      return <Loading />;
-    }
-  
-    if (status === "authenticated") {
-      redirect("/create-workspace");
-    }
-
+  const { status } = useSession();
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  async function handleLogin () {
-    try {
-      await signIn("google", {callbackUrl: "/"})
-    } catch (error) {
-      console.log(error)
-      toast.error("Failed to login")
-    }
+  if (!mounted) return null;
+
+
+  if (status === "loading") {
+    return <Loading />;
   }
 
-  if (!mounted) return null;
+  if (status === "authenticated") {
+    redirect("/create-workspace");
+  }
+
+  async function handleLogin() {
+    try {
+      await signIn("google", { callbackUrl: "/create-workspace" });
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to login");
+    }
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-black transition-colors duration-500">

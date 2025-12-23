@@ -1,8 +1,13 @@
-"use client"
+"use client";
 
 import { motion } from "framer-motion";
 import { HiPlus, HiOutlineFolder } from "react-icons/hi";
 import { FiUsers } from "react-icons/fi";
+import { useSession } from "next-auth/react";
+import { useState, useCallback, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createWorkspace } from "@/module/workspace/actions";
+import { toast } from "sonner";
 
 const workspaces = [
   {
@@ -20,19 +25,88 @@ const workspaces = [
     role: "Member",
     createdAt: "Oct 18, 2025",
   },
-];
+] as const;
 
 const roleStyles: Record<string, string> = {
   Owner: "bg-black text-white dark:bg-white dark:text-black",
-  Admin:
-    "border border-black/30 text-black dark:border-white/30 dark:text-white",
-  Member:
-    "bg-black/5 text-black dark:bg-white/10 dark:text-white",
+  Admin: "border border-black/30 text-black dark:border-white/30 dark:text-white",
+  Member: "bg-black/5 text-black dark:bg-white/10 dark:text-white",
 };
 
 export default function CreateWorkspacePage() {
+  const { data: session, status } = useSession();
+  const [name, setName] = useState("");
+  const queryClient = useQueryClient();
+
+  // Memoize user authentication state
+  const isAuthenticated = useMemo(
+    () => status === "authenticated" && !!session?.user?.id,
+    [status, session?.user?.id]
+  );
+
+  const mutation = useMutation({
+    mutationFn: async (workspaceName: string) => {
+      if (!session?.user?.id) {
+        throw new Error("User not authenticated");
+      }
+      return await createWorkspace(session.user.id, workspaceName);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      toast.success("Workspace created successfully");
+      setName("");
+    },
+    onError: (error: Error) => {
+      console.error("Failed to create workspace:", error);
+      toast.error(error.message || "Failed to create workspace");
+    },
+  });
+
+  // Memoize validation logic
+  const isFormValid = useMemo(() => {
+    return name.trim().length > 0 && isAuthenticated && !mutation.isPending;
+  }, [name, isAuthenticated, mutation.isPending]);
+
+  const handleCreate = useCallback(() => {
+    const trimmedName = name.trim();
+
+    if (!trimmedName) {
+      toast.error("Please enter a workspace name");
+      return;
+    }
+
+    if (!isAuthenticated) {
+      toast.error("Please sign in to create a workspace");
+      return;
+    }
+
+    if (mutation.isPending) {
+      return;
+    }
+
+    mutation.mutate(trimmedName);
+  }, [name, isAuthenticated, mutation]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter" && isFormValid) {
+        handleCreate();
+      }
+    },
+    [handleCreate, isFormValid]
+  );
+
+  // Show loading state while checking authentication
+  if (status === "loading") {
+    return (
+      <div className="bg-white dark:bg-black transition-colors duration-500 min-h-screen flex items-center justify-center">
+        <div className="text-black/60 dark:text-white/60">Loading...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="bg-white dark:bg-black transition-colors duration-500">
+    <div className="bg-white dark:bg-black transition-colors duration-500 min-h-screen">
       <div className="mx-auto max-w-6xl px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -40,6 +114,7 @@ export default function CreateWorkspacePage() {
           transition={{ duration: 0.6 }}
           className="grid grid-cols-1 md:grid-cols-2 gap-12"
         >
+          {/* Create Workspace Section */}
           <div>
             <h1 className="text-3xl font-semibold text-black dark:text-white">
               Create Workspace
@@ -55,27 +130,49 @@ export default function CreateWorkspacePage() {
               transition={{ delay: 0.2 }}
               className="mt-8"
             >
-              <label className="block text-xs uppercase tracking-widest text-black/50 dark:text-white/50 mb-2">
+              <label
+                htmlFor="workspace-name"
+                className="block text-xs uppercase tracking-widest text-black/50 dark:text-white/50 mb-2"
+              >
                 Workspace name
               </label>
 
               <input
+                id="workspace-name"
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                onKeyDown={handleKeyDown}
                 placeholder="e.g. Product Team"
-                className="w-full rounded-xl border border-black/20 dark:border-white/20 bg-transparent px-4 py-3 text-sm text-black dark:text-white placeholder-black/40 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition"
+                disabled={mutation.isPending || !isAuthenticated}
+                maxLength={100}
+                autoComplete="off"
+                className="w-full rounded-xl border border-black/20 dark:border-white/20 bg-transparent px-4 py-3 text-sm text-black dark:text-white placeholder-black/40 dark:placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="Workspace name"
+                aria-invalid={!isFormValid && name.length > 0}
               />
 
               <motion.button
-                whileHover={{ scale: 1.04 }}
-                whileTap={{ scale: 0.96 }}
-                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-black dark:bg-white px-6 py-3 text-sm font-medium text-white dark:text-black transition-all"
+                whileHover={{ scale: isFormValid ? 1.04 : 1 }}
+                whileTap={{ scale: isFormValid ? 0.96 : 1 }}
+                onClick={handleCreate}
+                disabled={!isFormValid}
+                className="mt-6 inline-flex items-center gap-2 rounded-xl bg-black dark:bg-white px-6 py-3 text-sm font-medium text-white dark:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg disabled:hover:shadow-none"
+                aria-busy={mutation.isPending}
               >
-                <HiPlus size={18} />
-                Create Workspace
+                <HiPlus size={18} aria-hidden="true" />
+                {mutation.isPending ? "Creating..." : "Create Workspace"}
               </motion.button>
+
+              {!isAuthenticated && (
+                <p className="mt-2 text-xs text-red-600 dark:text-red-400">
+                  Please sign in to create a workspace
+                </p>
+              )}
             </motion.div>
           </div>
 
+          {/* Workspaces List Section */}
           <div>
             <h2 className="text-lg font-semibold text-black dark:text-white">
               Your Workspaces
@@ -84,17 +181,27 @@ export default function CreateWorkspacePage() {
             <div className="mt-6 space-y-4">
               {workspaces.map((ws, index) => (
                 <motion.div
-                  key={ws.name}
+                  key={`${ws.name}-${index}`}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index }}
                   whileHover={{ scale: 1.02 }}
-                  className="flex items-center justify-between rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4 shadow-sm cursor-pointer"
+                  className="flex items-center justify-between rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      // Handle workspace selection
+                    }
+                  }}
+                  aria-label={`${ws.name} workspace, ${ws.role} role`}
                 >
-                  {/* Left */}
                   <div className="flex items-center gap-4">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-black/5 dark:bg-white/10">
-                      <HiOutlineFolder className="text-black dark:text-white" />
+                      <HiOutlineFolder
+                        className="text-black dark:text-white"
+                        aria-hidden="true"
+                      />
                     </div>
 
                     <div>
@@ -110,10 +217,14 @@ export default function CreateWorkspacePage() {
                   <div className="flex items-center gap-3">
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-medium ${roleStyles[ws.role]}`}
+                      aria-label={`Role: ${ws.role}`}
                     >
                       {ws.role}
                     </span>
-                    <FiUsers className="text-black/40 dark:text-white/40" />
+                    <FiUsers
+                      className="text-black/40 dark:text-white/40"
+                      aria-hidden="true"
+                    />
                   </div>
                 </motion.div>
               ))}
