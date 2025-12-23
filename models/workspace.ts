@@ -13,6 +13,16 @@ const workspaceSchema = new Schema(
       required: true,
     },
 
+    joinCode: Number,
+
+    agentsLimit: {
+      type: Number,
+      default: 2,
+    },
+    membersLimit: {
+      type: Number,
+      default: 5,
+    },
     members: [
       {
         member: {

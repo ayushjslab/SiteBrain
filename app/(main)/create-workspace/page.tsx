@@ -5,11 +5,12 @@ import { HiPlus, HiOutlineFolder } from "react-icons/hi";
 import { FiUsers } from "react-icons/fi";
 import { useSession } from "next-auth/react";
 import { useState, useCallback, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createWorkspace } from "@/module/workspace/actions";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { createWorkspace, getUserWorkspaces } from "@/module/workspace/actions";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-const workspaces = [
+const workspacesItems = [
   {
     name: "Design System",
     role: "Owner",
@@ -29,7 +30,8 @@ const workspaces = [
 
 const roleStyles: Record<string, string> = {
   Owner: "bg-black text-white dark:bg-white dark:text-black",
-  Admin: "border border-black/30 text-black dark:border-white/30 dark:text-white",
+  Admin:
+    "border border-black/30 text-black dark:border-white/30 dark:text-white",
   Member: "bg-black/5 text-black dark:bg-white/10 dark:text-white",
 };
 
@@ -37,12 +39,32 @@ export default function CreateWorkspacePage() {
   const { data: session, status } = useSession();
   const [name, setName] = useState("");
   const queryClient = useQueryClient();
+  const router = useRouter();
+
+  const fetchWorkspaces = async (userId: string) => {
+    const res = await getUserWorkspaces(userId);
+
+    if (!res.ok) {
+      throw new Error(res.message);
+    }
+
+    return res.workspaces;
+  };
 
   // Memoize user authentication state
   const isAuthenticated = useMemo(
     () => status === "authenticated" && !!session?.user?.id,
     [status, session?.user?.id]
   );
+
+  const { data: workspaces = [], isLoading: workspacesLoading } = useQuery({
+    queryKey: ["workspaces"],
+    queryFn: () => fetchWorkspaces(session!.user.id),
+    enabled: isAuthenticated,
+
+    staleTime: 1000 * 60 * 5,
+    refetchOnWindowFocus: false,
+  });
 
   const mutation = useMutation({
     mutationFn: async (workspaceName: string) => {
@@ -51,9 +73,11 @@ export default function CreateWorkspacePage() {
       }
       return await createWorkspace(session.user.id, workspaceName);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const workspaceId = data.workspace?.id;
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
       toast.success("Workspace created successfully");
+      router.push(`/dashboard/${workspaceId}/agents`);
       setName("");
     },
     onError: (error: Error) => {
@@ -62,7 +86,6 @@ export default function CreateWorkspacePage() {
     },
   });
 
-  // Memoize validation logic
   const isFormValid = useMemo(() => {
     return name.trim().length > 0 && isAuthenticated && !mutation.isPending;
   }, [name, isAuthenticated, mutation.isPending]);
@@ -96,17 +119,16 @@ export default function CreateWorkspacePage() {
     [handleCreate, isFormValid]
   );
 
-  // Show loading state while checking authentication
   if (status === "loading") {
     return (
-      <div className="bg-white dark:bg-black transition-colors duration-500 min-h-screen flex items-center justify-center">
+      <div className="bg-white dark:bg-black transition-colors duration-500 flex items-center justify-center">
         <div className="text-black/60 dark:text-white/60">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-black transition-colors duration-500 min-h-screen">
+    <div className="bg-white dark:bg-black transition-colors duration-500">
       <div className="mx-auto max-w-6xl px-6 py-16">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -178,7 +200,13 @@ export default function CreateWorkspacePage() {
               Your Workspaces
             </h2>
 
-            <div className="mt-6 space-y-4">
+            {workspacesLoading && <p>Loading workspaces...</p>}
+
+            {!workspacesLoading && workspaces.length === 0 && (
+              <p>No workspaces found</p>
+            )}
+
+            <div className="mt-6 space-y-4 overflow-y-auto overflow-hidden h-72">
               {workspaces.map((ws, index) => (
                 <motion.div
                   key={`${ws.name}-${index}`}
@@ -209,14 +237,16 @@ export default function CreateWorkspacePage() {
                         {ws.name}
                       </p>
                       <p className="text-xs text-black/50 dark:text-white/50">
-                        Created {ws.createdAt}
+                        Created {ws.updatedAt}
                       </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-3">
                     <span
-                      className={`rounded-full px-3 py-1 text-xs font-medium ${roleStyles[ws.role]}`}
+                      className={`rounded-full px-3 py-1 text-xs font-medium ${
+                        roleStyles[ws.role]
+                      }`}
                       aria-label={`Role: ${ws.role}`}
                     >
                       {ws.role}
