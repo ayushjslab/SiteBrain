@@ -21,7 +21,7 @@ export async function createWorkspace(createdBy: string, name: string) {
     if (user.workspaceLimit <= 0) {
       return {
         ok: false,
-        message: "You don't have credit to create a workspace",
+        message: "Fail",
       };
     }
 
@@ -36,12 +36,20 @@ export async function createWorkspace(createdBy: string, name: string) {
       ],
     });
 
-    await User.findByIdAndUpdate(createdBy, {
-      $push: { workspace: newWorkspace._id },
-    });
+    await User.findOneAndUpdate(
+      {
+        _id: createdBy,
+        workspaceLimit: { $gt: 0 },
+      },
+      {
+        $push: { workspace: newWorkspace._id },
+        $inc: { workspaceLimit: -1 },
+      },
+    );
 
     return {
       ok: true,
+      message: "Workspace created successfully",
       workspace: {
         id: newWorkspace._id.toString(),
         name: newWorkspace.name,

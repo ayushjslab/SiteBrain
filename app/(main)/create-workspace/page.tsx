@@ -9,24 +9,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createWorkspace, getUserWorkspaces } from "@/module/workspace/actions";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Loader2, FolderX } from "lucide-react";
 
-const workspacesItems = [
-  {
-    name: "Design System",
-    role: "Owner",
-    createdAt: "Aug 12, 2025",
-  },
-  {
-    name: "Marketing Hub",
-    role: "Admin",
-    createdAt: "Sep 02, 2025",
-  },
-  {
-    name: "Client Portal",
-    role: "Member",
-    createdAt: "Oct 18, 2025",
-  },
-] as const;
 
 const roleStyles: Record<string, string> = {
   Owner: "bg-black text-white dark:bg-white dark:text-black",
@@ -76,8 +60,15 @@ export default function CreateWorkspacePage() {
     onSuccess: (data) => {
       const workspaceId = data.workspace?.id;
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-      toast.success("Workspace created successfully");
-      router.push(`/dashboard/${workspaceId}/agents`);
+      if (data.ok) {
+        toast.success(data.message);
+        router.push(`/dashboard/${workspaceId}/agents`);
+        return;
+      } else {
+        data.message === "Fail"
+          ? router.push("/plans")
+          : toast.error(data.message);
+      }
       setName("");
     },
     onError: (error: Error) => {
@@ -195,18 +186,26 @@ export default function CreateWorkspacePage() {
           </div>
 
           {/* Workspaces List Section */}
-          <div>
+          <div className="w-full">
             <h2 className="text-lg font-semibold text-black dark:text-white">
               Your Workspaces
             </h2>
 
-            {workspacesLoading && <p>Loading workspaces...</p>}
-
-            {!workspacesLoading && workspaces.length === 0 && (
-              <p>No workspaces found</p>
+             {workspacesLoading && (
+              <div className="flex items-center gap-3 rounded-2xl border border-gray-200 dark:border-gray-700 px-6 py-4 text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 shadow-sm">
+                <Loader2 className="h-5 w-5 animate-spin text-gray-500 dark:text-gray-400" />
+                <span>Loading workspaces…</span>
+              </div>
             )}
 
-            <div className="mt-6 space-y-4 overflow-y-auto overflow-hidden h-72">
+            {!workspacesLoading && workspaces.length === 0 && (
+              <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-400 px-6 py-6 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/10">
+                <FolderX className="h-5 w-5" />
+                <span>No workspaces found</span>
+              </div>
+            )}
+
+            <div className="mt-6 p-4 space-y-4 overflow-y-auto overflow-hidden h-72">
               {workspaces.map((ws, index) => (
                 <motion.div
                   key={`${ws.name}-${index}`}
@@ -217,6 +216,7 @@ export default function CreateWorkspacePage() {
                   className="flex items-center justify-between rounded-2xl border border-black/10 dark:border-white/10 bg-white dark:bg-black p-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
                   role="button"
                   tabIndex={0}
+                  onClick={() => router.push(`/dashboard/${ws.id}/agents`)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       // Handle workspace selection

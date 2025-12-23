@@ -15,7 +15,7 @@ const userSchema = new Schema({
   },
   plan: {
     type: String,
-    enum: ["PRO","FREE"],
+    enum: ["PRO","FREE", "CUSTOM"],
     default: "FREE"
   },
   workspaceLimit: {

@@ -13,21 +13,20 @@ import {
 } from "@/components/ui/popover";
 import ProfilePopover from "./profile-popover";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import WorkspaceSelect from "./selector";
 
 export default function Navbar() {
   const pathName = usePathname();
   const { theme } = useTheme();
+  const router = useRouter();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
       <div className="mx-auto flex h-19.75 max-w-7xl items-center justify-between px-6">
-        {/* LEFT */}
         <div className="flex items-center gap-8">
-          {/* Logo */}
-          <div className="flex items-center gap-2 text-black dark:text-white font-semibold">
+          <div onClick={() => router.push("/")} className="flex items-center gap-2 text-black dark:text-white font-semibold cursor-pointer">
             <motion.div
               animate={{ rotate: 360 }}
               transition={{
