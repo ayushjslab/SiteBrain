@@ -155,3 +155,61 @@ export async function joinWorkspace({
     return { ok: false, message: "Internal server error" };
   }
 }
+
+export async function fetchMembers({ workspaceId }: { workspaceId: string }) {
+  try {
+    if (!workspaceId) {
+      return {
+        ok: false,
+        message: "Workspace ID is required",
+        members: [],
+      };
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findById(workspaceId)
+      .select("members")
+      .lean();
+
+    if (!workspace) {
+      return {
+        ok: false,
+        message: "Workspace not found",
+        members: [],
+      };
+    }
+
+    const memberIds = workspace.members.map((m: any) => m.member);
+
+    const users = await User.find({ _id: { $in: memberIds } })
+      .select("name email")
+      .lean();
+
+    const members = users.map((user) => {
+      const memberInfo = workspace.members.find(
+        (m: any) => m.member.toString() === user._id.toString()
+      );
+
+      return {
+        id: user._id.toString(),
+        name: user.name,
+        email: user.email,
+        role: memberInfo?.role ?? "Member",
+      };
+    });
+
+    return {
+      ok: true,
+      members,
+    };
+  } catch (error) {
+    console.error("Fetch members error:", error);
+    return {
+      ok: false,
+      message: "Something went wrong",
+      members: [],
+    };
+  }
+}
+

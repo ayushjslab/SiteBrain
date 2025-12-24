@@ -1,8 +1,19 @@
 "use client"
+import { fetchMembers } from "@/module/settings/members/actions";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect } from "react";
 
 export default function Home() {
   const { data: session} = useSession();
+
+  useEffect(() => {
+    async function z(){
+      const res = await fetchMembers({workspaceId:"694ba19bcce61dac356ce608"});
+
+      console.log(res)
+    }
+    z()
+  })
 
   if (session) {
     return (

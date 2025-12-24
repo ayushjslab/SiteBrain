@@ -93,7 +93,7 @@ export default function WorkspaceGeneralSettingsPage() {
               Workspace details
             </h2>
             <p className="text-sm text-muted-foreground">
-              Update your workspace name and description
+              Update your workspace name
             </p>
           </div>
 
