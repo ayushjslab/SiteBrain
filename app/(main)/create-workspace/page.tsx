@@ -11,7 +11,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Loader2, FolderX } from "lucide-react";
 
-
 const roleStyles: Record<string, string> = {
   Owner: "bg-black text-white dark:bg-white dark:text-black",
   Admin:
@@ -120,7 +119,7 @@ export default function CreateWorkspacePage() {
 
   return (
     <div className="bg-white dark:bg-black transition-colors duration-500">
-      <div className="mx-auto max-w-6xl px-6 py-16">
+      <div className="mx-auto max-w-6xl px-6 py-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -199,7 +198,7 @@ export default function CreateWorkspacePage() {
             )}
 
             {!workspacesLoading && workspaces.length === 0 && (
-              <div className="flex items-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-400 px-6 py-6 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/10">
+              <div className="flex mt-3 items-center gap-3 rounded-2xl border-2 border-dashed border-gray-300 dark:border-gray-400 px-6 py-6 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/10">
                 <FolderX className="h-5 w-5" />
                 <span>No workspaces found</span>
               </div>

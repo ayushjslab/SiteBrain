@@ -79,7 +79,7 @@ export async function getUserWorkspaces(userId: string) {
 
     const user = await User.findById(userId).select("workspace").lean();
 
-    if (!user || user.workspace.length === 0) {
+    if (!user || user?.workspace?.length === 0) {
       return { ok: true, workspaces: [] };
     }
 

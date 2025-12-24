@@ -1,18 +1,72 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { EditWorkspaceDialog } from "./edit-workspace-dialog"
-import { DeleteWorkspaceDialog } from "./delete-workspace-dialog"
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { EditWorkspaceDialog } from "./edit-workspace-dialog";
+import { DeleteWorkspaceDialog } from "./delete-workspace-dialog";
+import { useGetMemberRole } from "../hooks/useGetMemberRole";
+import Loading from "@/components/shared/loading";
+import { useParams } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function WorkspaceGeneralSettingsPage() {
-  const [editOpen, setEditOpen] = useState(false)
-  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [role, setRole] = useState<string | null>(null);
 
+  const { mutateAsync, isPending } = useGetMemberRole();
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (!workspaceId || !session?.user?.id) return;
+
+    mutateAsync({
+      workspaceId,
+      userId: session.user.id,
+    }).then((res) => {
+      if (res.ok) {
+        setRole(res.role);
+      }
+    });
+  }, [workspaceId, session?.user?.id]);
+
+  if (isPending || status === "loading" || !role) {
+    return <Loading />;
+  }
+
+  // 🚫 Access denied UI
+  if (role !== "Owner") {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center px-6">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md rounded-xl border bg-background p-6 text-center"
+        >
+          <h2 className="text-xl font-semibold text-foreground">
+            Access denied
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            You don’t have permission to access these settings.
+          </p>
+
+          <Alert className="mt-4" variant="destructive">
+            <AlertDescription>
+              Your role in this workspace is <b>{role}</b>.  
+              Only workspace <b>Owners</b> can manage general settings.
+            </AlertDescription>
+          </Alert>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ✅ Owner UI
   return (
     <div className="px-6 py-8">
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -65,10 +119,7 @@ export default function WorkspaceGeneralSettingsPage() {
             </p>
           </div>
 
-          <Button
-            variant="destructive"
-            onClick={() => setDeleteOpen(true)}
-          >
+          <Button variant="destructive" onClick={() => setDeleteOpen(true)}>
             Delete workspace
           </Button>
         </div>
@@ -77,5 +128,5 @@ export default function WorkspaceGeneralSettingsPage() {
       <EditWorkspaceDialog open={editOpen} onOpenChange={setEditOpen} />
       <DeleteWorkspaceDialog open={deleteOpen} onOpenChange={setDeleteOpen} />
     </div>
-  )
+  );
 }
