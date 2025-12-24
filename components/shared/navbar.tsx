@@ -13,19 +13,36 @@ import {
 } from "@/components/ui/popover";
 import ProfilePopover from "./profile-popover";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import DropDownSearch from "./drop-down-search";
 import { useSession } from "next-auth/react";
 import { useAllWorkspaces } from "@/module/workspace/hooks/useAllWorkspaces";
-
+import { useCurrentWorkspace } from "@/module/workspace/hooks/useCurrentWorkspace";
+import { useEffect, useState } from "react";
+interface Workspace {
+  id: string;
+  name: string;
+  plan?: string;
+}
 export default function Navbar() {
   const pathName = usePathname();
   const { theme } = useTheme();
   const router = useRouter();
   const { data: session } = useSession();
 
+  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null)
+
   const { data: workspaces, isLoading } = useAllWorkspaces(session?.user?.id);
+   const { workspaceId } = useParams<{ workspaceId: string }>();
+  
+  const { data } = useCurrentWorkspace(workspaceId);
+  
+    useEffect(() => {
+      if (data) {
+        setCurrentWorkspace(data);
+      }
+    }, [data]);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
@@ -55,15 +72,14 @@ export default function Navbar() {
               SiteBrain
             </span>
           </div>
-          {/* Menus */}
           {pathName.includes("dashboard") && (
             <div className="hidden md:flex items-center gap-2">
-              {/* <NavDropdown label="Workspace" /> */}
               <DropDownSearch
                 things={workspaces ?? []}
                 thingName={
                   isLoading ? "Loading workspaces…" : "Create Workspace"
                 }
+                current={currentWorkspace}
               />
               /
               <DropDownSearch
@@ -72,6 +88,7 @@ export default function Navbar() {
                   { id: "2", name: "just-2", plan: "free" },
                 ]}
                 thingName="Create Agent"
+                current={currentWorkspace}
               />
             </div>
           )}

@@ -144,7 +144,7 @@ export async function fetchAllWorkspaces(userId: string) {
     }
 
     const workspaces = user.workspace.map((ws: any) => ({
-      id: ws._id.toString(), // ✅ serialize
+      id: ws._id.toString(),
       name: ws.name,
     }));
 
@@ -159,6 +159,49 @@ export async function fetchAllWorkspaces(userId: string) {
       ok: false,
       message: "Failed to fetch workspaces",
       data: [],
+    };
+  }
+}
+
+export async function fetchCurrentWorkspace(workspaceId: string) {
+  try {
+    if (!workspaceId) {
+      return {
+        ok: false,
+        message: "Workspace ID is required",
+        data: null,
+      };
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findById(workspaceId)
+      .select("_id name")
+      .lean();
+
+    if (!workspace) {
+      return {
+        ok: true,
+        message: "Workspace not found",
+        data: null,
+      };
+    }
+
+    return {
+      ok: true,
+      message: "Fetched successfully",
+      data: {
+        id: workspace._id.toString(), 
+        name: workspace.name,
+        // plan: workspace.plan,
+      },
+    };
+  } catch (error) {
+    console.error("fetchCurrentWorkspace error:", error);
+    return {
+      ok: false,
+      message: "Failed to fetch workspace",
+      data: null,
     };
   }
 }

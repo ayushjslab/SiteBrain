@@ -1,19 +1,29 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, Plus, ChevronDown } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
+import { useCurrentWorkspace } from "@/module/workspace/hooks/useCurrentWorkspace";
 
 interface Workspace {
   id: string;
   name: string;
-  plan: string;
+  plan?: string;
 }
 
-const DropDownSearch = ({ things, thingName }: { things: Workspace[], thingName: string }) => {
+const DropDownSearch = ({
+  things,
+  thingName,
+  current
+}: {
+  things: Workspace[];
+  thingName: string;
+  current: Workspace | null
+}) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
-    null
+    current
   );
+ 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
@@ -40,12 +50,13 @@ const DropDownSearch = ({ things, thingName }: { things: Workspace[], thingName:
   const handleSelectWorkspace = (thing: Workspace) => {
     setSelectedWorkspace(thing);
     setIsOpen(false);
+    router.push(`/dashboard/${thing.id}/agents`);
     setSearchQuery("");
   };
 
   const handleCreateWorkspace = () => {
     setIsOpen(false);
-    router.push("/create-thing")
+    router.push("/create-workspace");
   };
 
   return (
@@ -126,9 +137,7 @@ const DropDownSearch = ({ things, thingName }: { things: Workspace[], thingName:
               className="flex w-full items-center gap-2 px-3 py-3 cursor-pointer text-sm transition dark:hover:bg-white/10 hover:bg-gray-100"
             >
               <Plus className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">
-                {thingName}
-              </span>
+              <span className="font-medium text-foreground">{thingName}</span>
             </button>
           </div>
         </div>
