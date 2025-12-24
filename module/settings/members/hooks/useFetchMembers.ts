@@ -1,14 +1,12 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { fetchMembers } from "../actions";
 
-export function useFetchMembers() {
-  return useMutation({
-    mutationFn: async ({ workspaceId }: { workspaceId: string }) => {
-      return await fetchMembers({
-        workspaceId,
-      });
-    },
+export function useFetchMembers(workspaceId: string) {
+  return useQuery({
+    queryKey: ["workspace-members", workspaceId],
+    queryFn: () => fetchMembers({ workspaceId }),
+    enabled: !!workspaceId,
   });
 }

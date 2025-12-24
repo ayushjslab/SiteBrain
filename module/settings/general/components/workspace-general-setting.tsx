@@ -34,31 +34,44 @@ export default function WorkspaceGeneralSettingsPage() {
   }, [workspaceId, session?.user?.id]);
 
   if (isPending || status === "loading" || !role) {
-    return <Loading />;
+    return (
+      <div className="flex items-center justify-center h-[60vh]">
+        <h1>Loading....</h1>
+      </div>
+    );
   }
 
   // 🚫 Access denied UI
   if (role !== "Owner") {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center px-6">
+      <div className="flex min-h-[70vh] items-center justify-center px-6">
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="max-w-md rounded-xl border bg-background p-6 text-center"
+          initial={{ opacity: 0, y: 20, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+          className="relative w-full max-w-md overflow-hidden rounded-2xl border border-border/60 bg-background/80 p-8 text-center shadow-xl backdrop-blur"
         >
-          <h2 className="text-xl font-semibold text-foreground">
+          {/* subtle glow */}
+          <div className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-primary/10" />
+
+          <h2 className="text-2xl font-semibold tracking-tight text-foreground">
             Access denied
           </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
+
+          <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
             You don’t have permission to access these settings.
           </p>
 
-          <Alert className="mt-4" variant="destructive">
-            <AlertDescription>
-              Your role in this workspace is <b>{role}</b>.  
-              Only workspace <b>Owners</b> can manage general settings.
-            </AlertDescription>
-          </Alert>
+          <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+            Your role in this workspace is{" "}
+            <span className="font-medium text-foreground">{role}</span>.
+            <br />
+            Only{" "}
+            <span className="font-medium text-foreground">
+              workspace owners
+            </span>{" "}
+            can manage general settings.
+          </div>
         </motion.div>
       </div>
     );

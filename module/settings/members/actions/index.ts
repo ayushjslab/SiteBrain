@@ -4,6 +4,7 @@ import User from "@/models/user";
 import Workspace from "@/models/workspace";
 import jwt from "jsonwebtoken";
 import { Types } from "mongoose";
+import { getMemberRole } from "../../general/actions";
 type Role = "Admin" | "Member";
 
 export async function generateInviteToken({
@@ -213,3 +214,187 @@ export async function fetchMembers({ workspaceId }: { workspaceId: string }) {
   }
 }
 
+export async function editMemberRole({
+  workspaceId,
+  userId,
+  newRole,
+}: {
+  workspaceId: string;
+  userId: string;
+  newRole: "Admin" | "Member";
+}) {
+  try {
+    if (!workspaceId || !userId || !newRole) {
+      return {
+        ok: false,
+        message: "Missing required fields",
+      };
+    }
+
+    await connectDB();
+
+    const workspace = await Workspace.findOneAndUpdate(
+      {
+        _id: workspaceId,
+        "members.member": userId,
+      },
+      {
+        $set: {
+          "members.$.role": newRole,
+        },
+      },
+      { new: true }
+    );
+
+    if (!workspace) {
+      return {
+        ok: false,
+        message: "Workspace or member not found",
+      };
+    }
+
+    return {
+      ok: true,
+      message: "Member role updated successfully",
+    };
+  } catch (error) {
+    console.error("Edit member role error:", error);
+    return {
+      ok: false,
+      message: "Internal server error",
+    };
+  }
+}
+
+export async function deleteMember({
+  workspaceId,
+  memberId,
+  requesterId,
+}: {
+  workspaceId: string;
+  memberId: string;
+  requesterId: string;
+}) {
+  try {
+    if (!workspaceId || !memberId || !requesterId) {
+      return {
+        ok: false,
+        message: "Missing required fields",
+      };
+    }
+
+    await connectDB();
+
+    const roleResponse = await getMemberRole({
+      workspaceId,
+      userId: requesterId,
+    });
+
+    if (!roleResponse?.ok) return roleResponse;
+
+    if (roleResponse.role !== "Owner" && roleResponse.role !== "Admin") {
+      return {
+        ok: false,
+        message: "You don't have permission to remove members",
+      };
+    }
+
+    const workspace = await Workspace.findById(workspaceId).lean();
+
+    if (!workspace) {
+      return {
+        ok: false,
+        message: "Workspace not found",
+      };
+    }
+
+    const targetMember = workspace.members.find(
+      (m: any) => m.member.toString() === memberId
+    );
+
+    if (!targetMember) {
+      return {
+        ok: false,
+        message: "Member not found in workspace",
+      };
+    }
+
+    if (targetMember.role === "Owner") {
+      return {
+        ok: false,
+        message: "Owner cannot be removed from the workspace",
+      };
+    }
+
+    await Workspace.findByIdAndUpdate(workspaceId, {
+      $pull: { members: { member: memberId } },
+    });
+
+    await User.findByIdAndUpdate(memberId, {
+      $pull: { workspace: workspaceId },
+    });
+
+    return {
+      ok: true,
+      message: "Member removed successfully",
+    };
+  } catch (error) {
+    console.error("Delete member error:", error);
+    return {
+      ok: false,
+      message: "Internal server error",
+    };
+  }
+}
+
+export async function leaveWorkspace({
+  workspaceId,
+  userId,
+}: {
+  workspaceId: string;
+  userId: string;
+}) {
+  try {
+    if (!workspaceId || !userId) {
+      return {
+        ok: false,
+        message: "Missing required fields",
+      };
+    }
+
+    await connectDB();
+
+    const roleResponse = await getMemberRole({
+      workspaceId,
+      userId,
+    });
+
+    if (!roleResponse?.ok) return roleResponse;
+
+    if (roleResponse.role === "Owner") {
+      return {
+        ok: false,
+        message: "Owner cannot leave the workspace",
+      };
+    }
+
+    await Workspace.findByIdAndUpdate(workspaceId, {
+      $pull: { members: { member: userId } },
+    });
+
+    await User.findByIdAndUpdate(userId, {
+      $pull: { workspace: workspaceId },
+    });
+
+    return {
+      ok: true,
+      message: "You have left the workspace successfully",
+    };
+  } catch (error) {
+    console.error("Leave workspace error:", error);
+    return {
+      ok: false,
+      message: "Internal server error",
+    };
+  }
+}

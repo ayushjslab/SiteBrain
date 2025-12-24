@@ -17,18 +17,33 @@ import { useFetchMembers } from "../hooks/useFetchMembers";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useGetMemberRole } from "../../general/hooks/useGetMemberRole";
+import { useEditMemberRole } from "../hooks/useEditMemberRole";
+import { useDeleteMember } from "../hooks/useDeleteMember";
+import { useLeaveWorkspace } from "../hooks/useLeaveWorkspace";
+import { EditMemberRoleDialog } from "./edit-member-dialog";
+import { DeleteMemberDialog } from "./delete-member-dialog";
+import { LeaveWorkspaceDialog } from "./leave-workspace-dialog";
 
 export default function WorkspaceMembersPage() {
   const [open, setOpen] = useState(false);
-  const [members, setMembers] = useState<any[]>([]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [leaveOpen, setLeaveOpen] = useState(false);
   const [role, setRole] = useState<string | null>(null);
+  const [selectedMember, setSelectedMember] = useState<any>(null);
 
   const { workspaceId } = useParams<{ workspaceId: string }>();
-  const { mutateAsync, isPending } = useFetchMembers();
+  const { data, isLoading } = useFetchMembers(workspaceId);
+   const members = data?.members ?? [];
   const { mutateAsync: roleMutate, isPending: roleLoading } =
     useGetMemberRole();
 
   const { data: session, status } = useSession();
+
+  const { mutateAsync: editRole } = useEditMemberRole();
+  const { mutateAsync: deleteMember } = useDeleteMember();
+  const { mutateAsync: leaveWorkspace } = useLeaveWorkspace();
+
   useEffect(() => {
     if (!workspaceId || !session?.user?.id) return;
 
@@ -41,16 +56,8 @@ export default function WorkspaceMembersPage() {
       }
     });
   }, [workspaceId, session?.user?.id]);
-  useEffect(() => {
-    async function loadMembers() {
-      if (!workspaceId) return;
-      const res = await mutateAsync({ workspaceId });
-      if (res.ok) setMembers(res.members);
-    }
-    loadMembers();
-  }, [workspaceId, mutateAsync]);
 
-  if (isPending || status === "loading") {
+  if (isLoading || status === "loading") {
     return (
       <div className="flex items-center justify-center h-[60vh]">
         <h1>Loading....</h1>
@@ -104,20 +111,26 @@ export default function WorkspaceMembersPage() {
                 member.id !== session?.user?.id;
 
               return (
-                <TableRow key={member.id} className="hover:bg-white/0">
+                <TableRow
+                  key={member.id}
+                  className="transition-all hover:bg-white/0 hover:shadow-sm"
+                >
                   <TableCell className="font-medium">{member.name}</TableCell>
+
                   <TableCell className="text-muted-foreground">
                     {member.email}
                   </TableCell>
+
                   <TableCell>
                     <span
-                      className={`rounded-full px-3 py-1 text-xs ${
-                        member.role === "Admin"
-                          ? "bg-emerald-500 text-white"
-                          : member.role === "Owner"
-                          ? "bg-yellow-500 text-black"
-                          : "bg-blue-500 text-white"
-                      }`}
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-medium shadow-sm
+                  ${
+                    member.role === "Admin"
+                      ? "bg-emerald-500/90 text-white"
+                      : member.role === "Owner"
+                      ? "bg-yellow-400/90 text-black"
+                      : "bg-blue-500/90 text-white"
+                  }`}
                     >
                       {member.role}
                     </span>
@@ -125,20 +138,40 @@ export default function WorkspaceMembersPage() {
 
                   {canEditDelete && member.role !== "Owner" ? (
                     <TableCell className="text-right space-x-2">
-                      <Button size="sm" className="cursor-pointer">
-                        <Edit />
-                      </Button>
                       <Button
                         size="sm"
-                        className="bg-red-500 hover:bg-red-600 cursor-pointer"
+                        variant="ghost"
+                        className="hover:bg-muted cursor-pointer"
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setEditOpen(true);
+                        }}
                       >
-                        <Trash2Icon />
+                        <Edit className="h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-red-500 hover:bg-red-500/10 hover:text-red-600 cursor-pointer"
+                        onClick={() => {
+                          setSelectedMember(member);
+                          setDeleteOpen(true);
+                        }}
+                      >
+                        <Trash2Icon className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   ) : (
-                    member.role !== "Owner" && member.id === session?.user.id && (
-                      <TableCell className="text-right space-x-2">
-                        <Button size="sm" className="cursor-pointer">
+                    member.role !== "Owner" &&
+                    member.id === session?.user.id && (
+                      <TableCell className="text-right">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="hover:bg-muted border cursor-pointer"
+                          onClick={() => setLeaveOpen(true)}
+                        >
                           Leave
                         </Button>
                       </TableCell>
@@ -154,6 +187,46 @@ export default function WorkspaceMembersPage() {
       {role !== "Member" && (
         <InviteWorkspaceDialog open={open} onOpenChange={setOpen} />
       )}
+
+      {selectedMember && (
+        <>
+          <EditMemberRoleDialog
+            open={editOpen}
+            onOpenChange={setEditOpen}
+            role={selectedMember.role}
+            onSave={(newRole) =>
+              editRole({
+                workspaceId,
+                userId: selectedMember.id,
+                newRole,
+              })
+            }
+          />
+
+          <DeleteMemberDialog
+            open={deleteOpen}
+            onOpenChange={setDeleteOpen}
+            onConfirm={() =>
+              deleteMember({
+                workspaceId,
+                memberId: selectedMember.id,
+                requesterId: session!.user!.id,
+              })
+            }
+          />
+        </>
+      )}
+
+      <LeaveWorkspaceDialog
+        open={leaveOpen}
+        onOpenChange={setLeaveOpen}
+        onLeave={() =>
+          leaveWorkspace({
+            workspaceId,
+            userId: session!.user!.id,
+          })
+        }
+      />
     </div>
   );
 }
