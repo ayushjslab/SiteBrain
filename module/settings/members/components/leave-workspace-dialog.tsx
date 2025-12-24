@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
+import { useRouter } from "next/navigation"
 
 export function LeaveWorkspaceDialog({
   open,
@@ -19,6 +20,7 @@ export function LeaveWorkspaceDialog({
   onOpenChange: (v: boolean) => void
   onLeave: () => void
 }) {
+    const router = useRouter();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-105">
@@ -43,6 +45,7 @@ export function LeaveWorkspaceDialog({
               variant="destructive"
               onClick={() => {
                 onLeave()
+                router.push("/create-workspace")
                 onOpenChange(false)
               }}
             >

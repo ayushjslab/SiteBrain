@@ -4,8 +4,7 @@ import { connectDB } from "@/lib/connectDB";
 import Workspace from "@/models/workspace";
 import User from "@/models/user";
 
-
-type Role = "admin" | "member"
+type Role = "admin" | "member";
 export async function createWorkspace(createdBy: string, name: string) {
   try {
     if (!createdBy || !name) {
@@ -46,7 +45,7 @@ export async function createWorkspace(createdBy: string, name: string) {
       {
         $push: { workspace: newWorkspace._id },
         $inc: { workspaceLimit: -1 },
-      },
+      }
     );
 
     return {
@@ -116,3 +115,50 @@ export async function getUserWorkspaces(userId: string) {
   }
 }
 
+export async function fetchAllWorkspaces(userId: string) {
+  try {
+    if (!userId) {
+      return {
+        ok: false,
+        message: "User ID is required",
+        data: [],
+      };
+    }
+
+    await connectDB();
+
+    const user = await User.findById(userId)
+      .select("workspace")
+      .populate({
+        path: "workspace",
+        select: "_id name",
+      })
+      .lean();
+
+    if (!user || !Array.isArray(user.workspace)) {
+      return {
+        ok: true,
+        message: "No workspaces found",
+        data: [],
+      };
+    }
+
+    const workspaces = user.workspace.map((ws: any) => ({
+      id: ws._id.toString(), // ✅ serialize
+      name: ws.name,
+    }));
+
+    return {
+      ok: true,
+      message: "Fetched successfully",
+      data: workspaces,
+    };
+  } catch (error) {
+    console.error("fetchAllWorkspaces error:", error);
+    return {
+      ok: false,
+      message: "Failed to fetch workspaces",
+      data: [],
+    };
+  }
+}

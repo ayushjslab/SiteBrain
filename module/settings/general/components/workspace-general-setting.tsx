@@ -77,7 +77,6 @@ export default function WorkspaceGeneralSettingsPage() {
     );
   }
 
-  // ✅ Owner UI
   return (
     <div className="px-6 py-8">
       <motion.div
