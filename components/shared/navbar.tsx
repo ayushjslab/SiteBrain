@@ -21,6 +21,7 @@ import { useAllWorkspaces } from "@/module/workspace/hooks/useAllWorkspaces";
 import { useCurrentWorkspace } from "@/module/workspace/hooks/useCurrentWorkspace";
 import { useEffect, useState } from "react";
 import DropDownSearchAgent from "./drop-down-search-agents";
+import { useFetchAgents } from "@/module/agents/hooks/useFetchAgents";
 interface Workspace {
   id: string;
   name: string;
@@ -31,9 +32,9 @@ export default function Navbar() {
   const { theme } = useTheme();
   const router = useRouter();
   const { data: session } = useSession();
-
-
+  const {workspaceId} = useParams<{workspaceId: string}>();
   const { data: workspaces, isLoading } = useAllWorkspaces(session?.user?.id);
+  const {data: agents, isLoading: agentsLoading} = useFetchAgents(workspaceId);
   
   return (
     <nav className="sticky top-0 z-50 border-b border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
@@ -73,10 +74,7 @@ export default function Navbar() {
               />
               /
               <DropDownSearchAgent
-                agents={[
-                  { id: "1", name: "Just", plan: "free" },
-                  { id: "2", name: "just-2", plan: "free" },
-                ]}
+                agents={agents ?? []}
                 agentName="Create Agent"
               />
             </div>

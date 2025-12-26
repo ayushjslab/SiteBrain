@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
-import { useCurrentWorkspace } from "@/module/workspace/hooks/useCurrentWorkspace";
+import { useCurrentAgent } from "@/module/agents/hooks/useCurrentAgent";
 
 interface Agent {
   id: string;
   name: string;
-  plan?: string;
 }
 
 const DropDownSearchAgent = ({
@@ -18,9 +17,11 @@ const DropDownSearchAgent = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedWorkspace, setSelectedWorkspace] = useState<Agent | null>(
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(
     null
   );
+
+   const {workspaceId} = useParams<{workspaceId: string}>();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -46,16 +47,25 @@ const DropDownSearchAgent = ({
   }, []);
 
   const handleSelectWorkspace = (agent: Agent) => {
-    setSelectedWorkspace(agent);
+    setSelectedAgent(agent);
     setIsOpen(false);
-    router.push(`/dashboard/${agent.id}/agents`);
+    router.push(`/dashboard/${workspaceId}/agents/${agent.id}`);
     setSearchQuery("");
   };
 
   const handleCreateWorkspace = () => {
     setIsOpen(false);
-    router.push("/create-workspace");
+    router.push(`/dashboard/${workspaceId}/agents/create-new`);
   };
+
+   const { agentId } = useParams<{ agentId: string }>();
+  
+    const { data } = useCurrentAgent(agentId);
+  
+    useEffect(() => {
+      if (!data) return;
+      setSelectedAgent(data);
+    }, [data]);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -65,17 +75,12 @@ const DropDownSearchAgent = ({
       >
         <div className="flex items-center justify-center gap-2">
           <span className="font-medium text-foreground">
-            {selectedWorkspace === null ? (
+            {selectedAgent === null ? (
               <span className="dark:text-gray-400">Select</span>
             ) : (
-              selectedWorkspace?.name
+              selectedAgent?.name
             )}
           </span>
-          {selectedWorkspace !== null && (
-            <span className="text-sm text-muted-foreground border px-2 py-0.5 rounded-full">
-              {selectedWorkspace?.plan}
-            </span>
-          )}
         </div>
 
         <ChevronDown
@@ -108,7 +113,7 @@ const DropDownSearchAgent = ({
                   key={agent.id}
                   onClick={() => handleSelectWorkspace(agent)}
                   className={`flex w-full items-center justify-between px-3 py-2 text-sm transition dark:hover:bg-white/20  hover:bg-gray-200 cursor-pointer ${
-                    selectedWorkspace?.id === agent.id
+                    selectedAgent?.id === agent.id
                       ? "bg-gray-100 dark:bg-white/10"
                       : ""
                   }`}
@@ -116,9 +121,7 @@ const DropDownSearchAgent = ({
                   <span className="font-medium text-foreground">
                     {agent.name}
                   </span>
-                  <span className="text-xs text-muted-foreground">
-                    {agent.plan}
-                  </span>
+                  
                 </button>
               ))
             ) : (

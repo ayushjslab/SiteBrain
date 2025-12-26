@@ -61,11 +61,10 @@ const DropDownSearch = ({
   const { data } = useCurrentWorkspace(workspaceId);
 
   useEffect(() => {
-    if (data) {
-      setSelectedWorkspace(data)
-    }
+    if (!data) return;
+    setSelectedWorkspace(data);
   }, [data]);
-
+  
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -81,8 +80,8 @@ const DropDownSearch = ({
             )}
           </span>
           {selectedWorkspace !== null && (
-            <span className="text-sm text-muted-foreground border px-2 py-0.5 rounded-full">
-              {selectedWorkspace?.plan}
+            <span className="text-sm text-muted-foreground border px-2 rounded-full">
+              {selectedWorkspace?.plan || "free"}
             </span>
           )}
         </div>
@@ -126,7 +125,7 @@ const DropDownSearch = ({
                     {workspace.name}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {workspace.plan}
+                    {workspace.plan || "free"}
                   </span>
                 </button>
               ))
