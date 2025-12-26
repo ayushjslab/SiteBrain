@@ -7,7 +7,7 @@ const agentSchema = new Schema(
       type: String,
       required: true,
     },
-    workspaceId: {
+    workspace: {
       type: Schema.Types.ObjectId,
       ref: "Workspace",
     },

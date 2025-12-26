@@ -1,34 +1,34 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { useRouter } from "next/navigation"
-
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 const agents = [
   {
     id: 1,
     name: "Nova Assistant",
     updatedAt: "2 hours ago",
-    image: "https://botscrew.com/wp-content/uploads/2024/10/What-Are-Generative-AI-Agents-and-Why-Top-Companies-Implement-Them_-3-1.jpg",
+    image:
+      "https://botscrew.com/wp-content/uploads/2024/10/What-Are-Generative-AI-Agents-and-Why-Top-Companies-Implement-Them_-3-1.jpg",
   },
   {
     id: 2,
     name: "Atlas AI",
     updatedAt: "Yesterday",
-    image: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROHG3zuZ-ikjD8uHAjK_E-jdJihNpJprRAkg&s",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcROHG3zuZ-ikjD8uHAjK_E-jdJihNpJprRAkg&s",
   },
   {
     id: 3,
     name: "Echo Brain",
     updatedAt: "3 days ago",
-    image: "https://cdn.analyticsvidhya.com/wp-content/uploads/2025/01/Self-RAG-Teaching-Language-Models-to-Critically-Evaluate-Their-Own-Output.webp",
+    image:
+      "https://cdn.analyticsvidhya.com/wp-content/uploads/2025/01/Self-RAG-Teaching-Language-Models-to-Critically-Evaluate-Their-Own-Output.webp",
   },
-]
-
+];
 
 export default function AgentsPage() {
   return (
     <div className="min-h-full px-6 py-8">
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
@@ -60,12 +60,11 @@ export default function AgentsPage() {
         ))}
       </motion.div>
     </div>
-  )
+  );
 }
 
-
 function AgentCard({ agent }: { agent: any }) {
-    const router = useRouter();
+  const router = useRouter();
   return (
     <motion.div
       variants={{
@@ -95,14 +94,12 @@ function AgentCard({ agent }: { agent: any }) {
 
       {/* Content */}
       <div className="relative space-y-1 p-4">
-        <h3 className="text-lg font-semibold text-foreground">
-          {agent.name}
-        </h3>
+        <h3 className="text-lg font-semibold text-foreground">{agent.name}</h3>
 
         <p className="text-sm text-muted-foreground">
           Last updated {agent.updatedAt}
         </p>
       </div>
     </motion.div>
-  )
+  );
 }
