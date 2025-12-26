@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +17,11 @@ export function useCreateAgent() {
     mutationFn: async (data: CreateAgentInput) => {
       const res = await CreateNewAgent(data);
       return res;
+    },
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ["agents", variables.workspaceId],
+      });
     },
   });
 }

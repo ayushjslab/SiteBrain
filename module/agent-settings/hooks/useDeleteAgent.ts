@@ -1,19 +1,17 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { EditAgent } from "../actions";
+import { DeleteAgent } from "../actions";
 
-type EditAgentInput = {
+type DeleteAgentInput = {
   agentId: string;
-  newName?: string;
-  enabledLimit?: boolean;
-  messageLimit?: number;
+  workspaceId: string;
 };
 
-export function useEditAgent() {
+export function useDeleteAgent() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: EditAgentInput) => {
-      const res = await EditAgent(data);
+    mutationFn: async (data: DeleteAgentInput) => {
+      const res = await DeleteAgent(data);
 
       if (!res.ok) {
         throw new Error(res.message);
@@ -26,7 +24,6 @@ export function useEditAgent() {
       queryClient.invalidateQueries({
         queryKey: ["agent", variables.agentId],
       });
-
       queryClient.invalidateQueries({
         queryKey: ["agents"],
       });

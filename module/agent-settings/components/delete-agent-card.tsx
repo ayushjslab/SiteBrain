@@ -1,10 +1,31 @@
-"use client"
+"use client";
 import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { UserX } from "lucide-react";
+import { useParams, useRouter } from "next/navigation";
+import { useDeleteAgent } from "../hooks/useDeleteAgent";
+import { toast } from "sonner";
 
 export function DeleteAgentCard() {
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { agentId } = useParams<{ agentId: string }>();
+  const { mutateAsync, isPending } = useDeleteAgent();
+  const router = useRouter();
+  async function handleDelete() {
+    try {
+      await mutateAsync({
+        agentId,
+        workspaceId,
+      });
+      toast.success("Successfully delete agent");
+      router.replace(`/dashboard/${workspaceId}/agents`);
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to edit name");
+    }
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -40,10 +61,17 @@ export function DeleteAgentCard() {
           <motion.div whileTap={{ scale: 0.95 }}>
             <Button
               variant="destructive"
+              onClick={handleDelete}
               className="w-full rounded-xl flex items-center gap-2"
             >
-              <UserX className="w-4 h-4" />
-              Delete Agent
+              {isPending ? (
+                "Deleting..."
+              ) : (
+                <>
+                  <UserX className="w-4 h-4" />
+                  Delete Agent
+                </>
+              )}
             </Button>
           </motion.div>
         </CardContent>

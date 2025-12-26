@@ -1,6 +1,7 @@
-"use server"
+"use server";
 import { connectDB } from "@/lib/connectDB";
 import Agent from "@/models/agent";
+import Workspace from "@/models/workspace";
 
 export async function EditAgent({
   agentId,
@@ -26,16 +27,13 @@ export async function EditAgent({
     if (newName !== undefined) updateData.name = newName;
     if (enabledLimit !== undefined)
       updateData.messageLimitEnabled = enabledLimit;
-    if (messageLimit !== undefined)
-      updateData.messageLimit = messageLimit;
+    if (messageLimit !== undefined) updateData.messageLimit = messageLimit;
 
     await connectDB();
 
-    const updatedAgent = await Agent.findByIdAndUpdate(
-      agentId,
-      updateData,
-      { new: true }
-    );
+    const updatedAgent = await Agent.findByIdAndUpdate(agentId, updateData, {
+      new: true,
+    });
 
     if (!updatedAgent) {
       return {
@@ -49,8 +47,52 @@ export async function EditAgent({
       agent: {
         id: updatedAgent._id.toString(),
         name: updatedAgent.name,
-        messageLimit: updatedAgent.messageLimit
+        messageLimit: updatedAgent.messageLimit,
       },
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      ok: false,
+      message: "Internal server error",
+    };
+  }
+}
+
+export async function DeleteAgent({
+  workspaceId,
+  agentId,
+}: {
+  workspaceId: string;
+  agentId: string;
+}) {
+  try {
+    if (!workspaceId || !agentId) {
+      return {
+        ok: false,
+        message: "Missing required IDs",
+      };
+    }
+
+    const workspace = await Workspace.findByIdAndUpdate(
+      workspaceId,
+      { $pull: { agents: agentId }, $inc: { agentsLimit: 1 } },
+
+      { new: true }
+    );
+
+    if (!workspace) {
+      return {
+        ok: false,
+        message: "Workspace not found",
+      };
+    }
+
+    await Agent.findByIdAndDelete(agentId);
+
+    return {
+      ok: true,
+      message: "Agent deleted successfully",
     };
   } catch (error) {
     console.error(error);

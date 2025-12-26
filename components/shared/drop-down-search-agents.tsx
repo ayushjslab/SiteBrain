@@ -17,11 +17,9 @@ const DropDownSearchAgent = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(
-    null
-  );
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
 
-   const {workspaceId} = useParams<{workspaceId: string}>();
+  const { workspaceId } = useParams<{ workspaceId: string }>();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -31,7 +29,6 @@ const DropDownSearchAgent = ({
     agent.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -58,14 +55,21 @@ const DropDownSearchAgent = ({
     router.push(`/dashboard/${workspaceId}/agents/create-new`);
   };
 
-   const { agentId } = useParams<{ agentId: string }>();
-  
-    const { data } = useCurrentAgent(agentId);
-  
-    useEffect(() => {
-      if (!data) return;
-      setSelectedAgent(data);
-    }, [data]);
+  const { agentId } = useParams<{ agentId: string }>();
+
+  const { data } = useCurrentAgent(agentId);
+
+  useEffect(() => {
+    if (!data) {
+      setSelectedAgent(null);
+      return;
+    }
+
+    setSelectedAgent({
+      id: data.id,
+      name: data.name,
+    });
+  }, [data]);
 
   return (
     <div className="relative" ref={dropdownRef}>
@@ -121,7 +125,6 @@ const DropDownSearchAgent = ({
                   <span className="font-medium text-foreground">
                     {agent.name}
                   </span>
-                  
                 </button>
               ))
             ) : (
