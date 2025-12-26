@@ -41,6 +41,14 @@ const agentSchema = new Schema(
         type: Number,
         default: 512,
       },
+      messageLimitEnabled: {
+        type: Boolean,
+        default: true
+      },
+      messageLimit: {
+        type: Number,
+        default: 10
+      }
     },
     actions: [
       {

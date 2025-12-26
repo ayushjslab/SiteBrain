@@ -38,109 +38,108 @@ import { IconType } from "react-icons/lib";
 import { MdContactPhone } from "react-icons/md";
 import { RiNotionFill } from "react-icons/ri";
 
-
-const navItems = [
-  {
-    label: "Activity",
-    Icon: ChartSpline,
-    navigations: [
-      {
-        label: "Chat logs",
-        url: "/dashboard/123/agents/123/activity",
-        Icon: MessageSquareText,
-      },
-      {
-        label: "Leads",
-        url: "/",
-        Icon: Users,
-        soon: true,
-      },
-    ],
-  },
-  {
-    label: "Analytics",
-    Icon: ChartBarDecreasing,
-    navigations: [
-      { label: "Chats", url: "/", Icon: MessagesSquare },
-      { label: "Topics", url: "/", Icon: Tags },
-      { label: "Sentiment", url: "/", Icon: Smile },
-    ],
-  },
-  {
-    label: "Sources",
-    Icon: FolderOpenDot,
-    navigations: [
-      { label: "Files", url: "/", Icon: FileText },
-      { label: "Text", url: "/", Icon: Type },
-      { label: "Website", url: "/", Icon: Globe },
-      { label: "Q&A", url: "/", Icon: HelpCircle },
-      { label: "Notion", url: "/", Icon: RiNotionFill, soon: true },
-    ],
-  },
-  {
-    label: "Actions",
-    Icon: SiStreamrunners,
-    navigations: [
-      { label: "Available Actions", url: "/", Icon: Plug },
-      { label: "Integrations", url: "/", Icon: Plug },
-    ],
-  },
-];
-const lastNavItems = [
-  {
-    label: "Deploy",
-    url: "/",
-    Icon: Rocket,
-    navigations: [
-      { label: "Embed", url: "/", Icon: Code2 },
-      { label: "Share", url: "/", Icon: Share2 },
-      { label: "Help page", url: "/", Icon: LifeBuoy, soon: true },
-    ],
-  },
-  {
-    label: "Settings",
-    url: "/",
-    Icon: Settings2,
-    navigations: [
-      { label: "General", url: "/", Icon: SlidersHorizontal },
-      { label: "AI", url: "/", Icon: Brain },
-      { label: "Chat interface", url: "/", Icon: Palette },
-      { label: "Security", url: "/", Icon: ShieldCheck },
-    ],
-  },
-];
-
 export function Sidebar() {
   const [open, setOpen] = useState(false);
-  const {workspaceId} = useParams<{ workspaceId: string }>()
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { agentId } = useParams<{ agentId: string }>();
   const pathName = usePathname();
   const isAgentPage = /^\/dashboard\/[^/]+\/agents\/[^/]+(\/.*)?$/.test(
     pathName
   );
-
+  const BASE_PATH = `/dashboard/${workspaceId}/agents/${agentId}`
+  const navItems = [
+    {
+      label: "Activity",
+      Icon: ChartSpline,
+      navigations: [
+        {
+          label: "Chat logs",
+          url: "/dashboard/123/agents/123/activity",
+          Icon: MessageSquareText,
+        },
+        {
+          label: "Leads",
+          url: "/",
+          Icon: Users,
+          soon: true,
+        },
+      ],
+    },
+    {
+      label: "Analytics",
+      Icon: ChartBarDecreasing,
+      navigations: [
+        { label: "Chats", url: "/", Icon: MessagesSquare },
+        { label: "Topics", url: "/", Icon: Tags },
+        { label: "Sentiment", url: "/", Icon: Smile },
+      ],
+    },
+    {
+      label: "Sources",
+      Icon: FolderOpenDot,
+      navigations: [
+        { label: "Files", url: "/", Icon: FileText },
+        { label: "Text", url: "/", Icon: Type },
+        { label: "Website", url: "/", Icon: Globe },
+        { label: "Q&A", url: "/", Icon: HelpCircle },
+        { label: "Notion", url: "/", Icon: RiNotionFill, soon: true },
+      ],
+    },
+    {
+      label: "Actions",
+      Icon: SiStreamrunners,
+      navigations: [
+        { label: "Available Actions", url: "/", Icon: Plug },
+        { label: "Integrations", url: "/", Icon: Plug },
+      ],
+    },
+  ];
+  const lastNavItems = [
+    {
+      label: "Deploy",
+      url: "/",
+      Icon: Rocket,
+      navigations: [
+        { label: "Embed", url: "/", Icon: Code2 },
+        { label: "Share", url: "/", Icon: Share2 },
+        { label: "Help page", url: "/", Icon: LifeBuoy, soon: true },
+      ],
+    },
+    {
+      label: "Settings",
+      url: "/",
+      Icon: Settings2,
+      navigations: [
+        { label: "General", url: `${BASE_PATH}/settings/general`, Icon: SlidersHorizontal },
+        { label: "AI", url: "/", Icon: Brain },
+        { label: "Chat interface", url: "/", Icon: Palette },
+        { label: "Security", url: "/", Icon: ShieldCheck },
+      ],
+    },
+  ];
 
   const workspaceSettings = [
-  {
-    label: "General",
-    url: `/dashboard/${workspaceId}/settings/general`,
-    Icon: SlidersHorizontal,
-  },
-  {
-    label: "Members",
-    url: `/dashboard/${workspaceId}/settings/members`,
-    Icon: Users,
-  },
-  {
-    label: "Billing",
-    url: `/dashboard/${workspaceId}/settings/billing`,
-    Icon: CreditCard,
-  },
-  {
-    label: "Plans",
-    url: `/dashboard/${workspaceId}/settings/plans`,
-    Icon: Layers,
-  },
-];
+    {
+      label: "General",
+      url: `/dashboard/${workspaceId}/settings/general`,
+      Icon: SlidersHorizontal,
+    },
+    {
+      label: "Members",
+      url: `/dashboard/${workspaceId}/settings/members`,
+      Icon: Users,
+    },
+    {
+      label: "Billing",
+      url: `/dashboard/${workspaceId}/settings/billing`,
+      Icon: CreditCard,
+    },
+    {
+      label: "Plans",
+      url: `/dashboard/${workspaceId}/settings/plans`,
+      Icon: Layers,
+    },
+  ];
 
   return (
     <aside

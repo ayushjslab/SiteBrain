@@ -20,12 +20,16 @@ const MainLayout = ({ children }: { children: ReactNode }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="h-screen flex flex-col">
       <Navbar />
       <div className="flex flex-1 overflow-hidden">
         {!pathName.includes("create-workspace") &&
-          !pathName.includes("create-new") && <Sidebar />}
-        <main className="flex-1 overflow-auto">{children}</main>
+          !pathName.includes("create-new") && (
+            <div className="overflow-y-auto">
+              <Sidebar />
+            </div>
+          )}
+        <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
     </div>
   );
