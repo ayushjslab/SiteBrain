@@ -19,6 +19,12 @@ const workspaceSchema = new Schema(
       type: Number,
       default: 2,
     },
+    
+    plan: {
+      type: String,
+      enum: ["PRO", "FREE", "CUSTOM"],
+      default: "FREE",
+    },
     membersLimit: {
       type: Number,
       default: 5,

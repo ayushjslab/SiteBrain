@@ -3,33 +3,31 @@ import { Search, Plus, ChevronDown } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCurrentWorkspace } from "@/module/workspace/hooks/useCurrentWorkspace";
 
-interface Workspace {
+interface Agent {
   id: string;
   name: string;
   plan?: string;
 }
 
-const DropDownSearch = ({
-  things,
-  thingName,
-  current
+const DropDownSearchAgent = ({
+  agents,
+  agentName,
 }: {
-  things: Workspace[];
-  thingName: string;
-  current: Workspace | null
+  agents: Agent[];
+  agentName: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
-    current
+  const [selectedWorkspace, setSelectedWorkspace] = useState<Agent | null>(
+    null
   );
- 
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
 
-  const filteredWorkspaces = things.filter((thing) =>
-    thing.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredWorkspaces = agents.filter((agent) =>
+    agent.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Close dropdown when clicking outside
@@ -47,10 +45,10 @@ const DropDownSearch = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleSelectWorkspace = (thing: Workspace) => {
-    setSelectedWorkspace(thing);
+  const handleSelectWorkspace = (agent: Agent) => {
+    setSelectedWorkspace(agent);
     setIsOpen(false);
-    router.push(`/dashboard/${thing.id}/agents`);
+    router.push(`/dashboard/${agent.id}/agents`);
     setSearchQuery("");
   };
 
@@ -105,27 +103,27 @@ const DropDownSearch = ({
           {/* List */}
           <div className="max-h-56 overflow-y-auto py-1">
             {filteredWorkspaces.length ? (
-              filteredWorkspaces.map((thing) => (
+              filteredWorkspaces.map((agent) => (
                 <button
-                  key={thing.id}
-                  onClick={() => handleSelectWorkspace(thing)}
+                  key={agent.id}
+                  onClick={() => handleSelectWorkspace(agent)}
                   className={`flex w-full items-center justify-between px-3 py-2 text-sm transition dark:hover:bg-white/20  hover:bg-gray-200 cursor-pointer ${
-                    selectedWorkspace?.id === thing.id
+                    selectedWorkspace?.id === agent.id
                       ? "bg-gray-100 dark:bg-white/10"
                       : ""
                   }`}
                 >
                   <span className="font-medium text-foreground">
-                    {thing.name}
+                    {agent.name}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    {thing.plan}
+                    {agent.plan}
                   </span>
                 </button>
               ))
             ) : (
               <div className="px-3 py-4 text-center text-xs text-muted-foreground">
-                No things found
+                No agents found
               </div>
             )}
           </div>
@@ -137,7 +135,7 @@ const DropDownSearch = ({
               className="flex w-full items-center gap-2 px-3 py-3 cursor-pointer text-sm transition dark:hover:bg-white/10 hover:bg-gray-100"
             >
               <Plus className="h-4 w-4 text-muted-foreground" />
-              <span className="font-medium text-foreground">{thingName}</span>
+              <span className="font-medium text-foreground">{agentName}</span>
             </button>
           </div>
         </div>
@@ -146,4 +144,4 @@ const DropDownSearch = ({
   );
 };
 
-export default DropDownSearch;
+export default DropDownSearchAgent;

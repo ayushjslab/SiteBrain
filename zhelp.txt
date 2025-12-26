@@ -1,0 +1,17 @@
+const geminiFreeModels = [
+  {
+    name: "Gemini 2.5 Flash",
+    description: "Multimodal reasoning model with strong performance. Free tier available for text/image/video output and input (within rate limits). Good for chat, summarization, basic reasoning.",
+    source: "Google AI for Developers"
+  },
+  {
+    name: "Gemini 2.5 Flash-Lite",
+    description: "Smaller, lighter, and more cost-effective than Flash. Also available under free quota — great for higher volume/throughput at lower capability.",
+    source: "Google AI for Developers"
+  },
+  {
+    name: "Gemini 3 Flash Preview",
+    description: "Newer model combining speed + reasoning.",
+    source: "Google AI for Developers"
+  }
+];

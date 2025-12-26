@@ -15,11 +15,12 @@ import ProfilePopover from "./profile-popover";
 import Image from "next/image";
 import { useParams, usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import DropDownSearch from "./drop-down-search";
+import DropDownSearch from "./drop-down-search-workspace";
 import { useSession } from "next-auth/react";
 import { useAllWorkspaces } from "@/module/workspace/hooks/useAllWorkspaces";
 import { useCurrentWorkspace } from "@/module/workspace/hooks/useCurrentWorkspace";
 import { useEffect, useState } from "react";
+import DropDownSearchAgent from "./drop-down-search-agents";
 interface Workspace {
   id: string;
   name: string;
@@ -31,19 +32,9 @@ export default function Navbar() {
   const router = useRouter();
   const { data: session } = useSession();
 
-  const [currentWorkspace, setCurrentWorkspace] = useState<Workspace | null>(null)
 
   const { data: workspaces, isLoading } = useAllWorkspaces(session?.user?.id);
-   const { workspaceId } = useParams<{ workspaceId: string }>();
   
-  const { data } = useCurrentWorkspace(workspaceId);
-  
-    useEffect(() => {
-      if (data) {
-        setCurrentWorkspace(data);
-      }
-    }, [data]);
-
   return (
     <nav className="sticky top-0 z-50 border-b border-black/10 dark:border-white/10 bg-white/80 dark:bg-black/80 backdrop-blur-xl">
       <div className="mx-auto flex h-19.75 max-w-7xl items-center justify-between px-6">
@@ -75,20 +66,18 @@ export default function Navbar() {
           {pathName.includes("dashboard") && (
             <div className="hidden md:flex items-center gap-2">
               <DropDownSearch
-                things={workspaces ?? []}
-                thingName={
+                workspaces={workspaces ?? []}
+                workspaceName={
                   isLoading ? "Loading workspaces…" : "Create Workspace"
                 }
-                current={currentWorkspace}
               />
               /
-              <DropDownSearch
-                things={[
+              <DropDownSearchAgent
+                agents={[
                   { id: "1", name: "Just", plan: "free" },
                   { id: "2", name: "just-2", plan: "free" },
                 ]}
-                thingName="Create Agent"
-                current={currentWorkspace}
+                agentName="Create Agent"
               />
             </div>
           )}
