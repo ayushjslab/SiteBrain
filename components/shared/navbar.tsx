@@ -18,8 +18,6 @@ import { useTheme } from "next-themes";
 import DropDownSearch from "./drop-down-search-workspace";
 import { useSession } from "next-auth/react";
 import { useAllWorkspaces } from "@/module/workspace/hooks/useAllWorkspaces";
-import { useCurrentWorkspace } from "@/module/workspace/hooks/useCurrentWorkspace";
-import { useEffect, useState } from "react";
 import DropDownSearchAgent from "./drop-down-search-agents";
 import { useFetchAgents } from "@/module/agents/hooks/useFetchAgents";
 interface Workspace {

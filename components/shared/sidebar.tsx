@@ -191,7 +191,7 @@ export function Sidebar() {
             open={open}
             icon={Users}
             label="Agents"
-            url={`/dashboard${workspaceId}/agents`}
+            url={`/dashboard/${workspaceId}/agents`}
           />
 
           <SidebarItem

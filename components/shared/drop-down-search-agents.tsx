@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, Plus, ChevronDown } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCurrentAgent } from "@/module/agents/hooks/useCurrentAgent";
