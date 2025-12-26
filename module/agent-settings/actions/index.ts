@@ -1,3 +1,5 @@
+"use server"
+import { connectDB } from "@/lib/connectDB";
 import Agent from "@/models/agent";
 
 export async function EditAgent({
@@ -27,6 +29,8 @@ export async function EditAgent({
     if (messageLimit !== undefined)
       updateData.messageLimit = messageLimit;
 
+    await connectDB();
+
     const updatedAgent = await Agent.findByIdAndUpdate(
       agentId,
       updateData,
@@ -42,7 +46,11 @@ export async function EditAgent({
 
     return {
       ok: true,
-      agent: updatedAgent,
+      agent: {
+        id: updatedAgent._id.toString(),
+        name: updatedAgent.name,
+        messageLimit: updatedAgent.messageLimit
+      },
     };
   } catch (error) {
     console.error(error);

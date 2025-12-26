@@ -1,14 +1,32 @@
-"use client"
+"use client";
 import { Switch } from "@/components/ui/switch";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useEditAgent } from "../hooks/useEditAgent";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
 export function MessageLimitCard() {
   const [enabled, setEnabled] = useState(true);
   const [limit, setLimit] = useState(100);
+  const { mutateAsync, isPending } = useEditAgent();
+  const { agentId } = useParams<{ agentId: string }>();
 
+  async function handleSave() {
+    try {
+      await mutateAsync({
+        agentId,
+        enabledLimit: enabled,
+        messageLimit: limit
+      });
+      toast.success("Successfully edit name");
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to edit name");
+    }
+  }
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -43,13 +61,12 @@ export function MessageLimitCard() {
             />
           </div>
 
-          {/* Save Button */}
           <motion.div whileTap={{ scale: 0.97 }}>
             <Button
-              disabled={!enabled}
+              onClick={handleSave}
               className="w-full rounded-xl bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 disabled:opacity-50"
             >
-              Save Limits
+              {isPending ? "Saving...": "Save limits"}
             </Button>
           </motion.div>
         </CardContent>
