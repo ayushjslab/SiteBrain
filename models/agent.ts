@@ -28,6 +28,14 @@ const agentSchema = new Schema(
       enum: ["support", "sales", "assistant"],
       default: "support",
     },
+    messageLimitEnabled: {
+      type: Boolean,
+      default: true,
+    },
+    messageLimit: {
+      type: Number,
+      default: 10,
+    },
     modelConfig: {
       model: {
         type: String,
@@ -41,14 +49,6 @@ const agentSchema = new Schema(
         type: Number,
         default: 512,
       },
-      messageLimitEnabled: {
-        type: Boolean,
-        default: true
-      },
-      messageLimit: {
-        type: Number,
-        default: 10
-      }
     },
     actions: [
       {

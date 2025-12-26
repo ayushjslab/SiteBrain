@@ -1,12 +1,31 @@
-"use client"
+"use client";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useEditAgent } from "../hooks/useEditAgent";
+import { useParams } from "next/navigation";
+import { toast } from "sonner";
 
 export default function AgentBasicCard() {
   const [newName, setNewName] = useState("");
+
+  const { mutateAsync, isPending } = useEditAgent();
+  const { agentId } = useParams<{ agentId: string }>();
+
+  async function handleSave() {
+    try {
+      await mutateAsync({
+        agentId,
+        newName,
+      });
+      toast.success("Successfully edit name")
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to edit name")
+    }
+  }
 
   return (
     <motion.div
@@ -19,7 +38,9 @@ export default function AgentBasicCard() {
         <CardContent className="p-6 space-y-6">
           {/* Header */}
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold tracking-tight">Agent Overview</h2>
+            <h2 className="text-xl font-semibold tracking-tight">
+              Agent Overview
+            </h2>
             <p className="text-sm text-black/60 dark:text-white/60">
               Manage your agent details
             </p>
@@ -54,8 +75,11 @@ export default function AgentBasicCard() {
 
           {/* Save Button */}
           <motion.div whileTap={{ scale: 0.97 }}>
-            <Button className="w-full rounded-xl bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90">
-              Save Changes
+            <Button
+              onClick={() => handleSave()}
+              className="w-full rounded-xl bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+            >
+              {isPending ? "Saving..." : "Save Changes"}
             </Button>
           </motion.div>
         </CardContent>
