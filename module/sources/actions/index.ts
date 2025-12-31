@@ -60,7 +60,7 @@ export async function createChunksWithEmbedding({
     title,
     words,
     type,
-    size: sizeInBytes
+    size: sizeInBytes,
   });
 
   console.log(source);
@@ -99,4 +99,52 @@ function splitQA(text: string): string[] {
     .split(/\n(?=Q:)/)
     .map((b) => b.trim())
     .filter(Boolean);
+}
+
+export async function sourceFetching({
+  workspaceId,
+  agentId,
+  type,
+}: {
+  workspaceId: string;
+  agentId: string;
+  type: string;
+}) {
+  try {
+    if (!workspaceId || !agentId || !type) {
+      return {
+        error: "Missing required fields",
+        success: false,
+      };
+    }
+
+    await connectDB();
+
+    const sources = await Source.find({
+      workspace: workspaceId,
+      agent: agentId,
+      type,
+    })
+      .select("title words size createdAt")
+      .lean();
+
+    const sourcesPlain = sources.map((source) => ({
+      _id: source._id.toString(),
+      title: source.title,
+      words: source.words,
+      size: source.size,
+      createdAt: source.createdAt?.toISOString(),
+    }));
+
+    return {
+      success: true,
+      sources: sourcesPlain,
+    };
+  } catch (error) {
+    console.error(error);
+    return {
+      error: "Failed to fetch sources",
+      success: false,
+    };
+  }
 }

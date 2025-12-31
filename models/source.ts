@@ -16,7 +16,7 @@ const sourceSchema = new Schema(
     },
     type: {
       type: String,
-      enum: ["qa", "text", "website", "docs"],
+      enum: ["qa", "text", "website", "files"],
       required: true,
     },
     title: {

@@ -7,23 +7,17 @@ import {
   Plus,
   MessageSquare,
   Clock,
-  ArrowLeft,
-  Moon,
-  Sun,
+  Hash,
+  MemoryStick,
 } from "lucide-react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useCreateChunks } from "@/module/sources/hooks/useCreateChunks";
+import { useParams } from "next/navigation";
+import { useFetchSource } from "@/module/sources/hooks/useFetchSource";
+import { Card, CardContent } from "@/components/ui/card";
+import { formatDate } from "@/lib/formate-date";
 
 interface FAQItem {
   id: string;
@@ -34,36 +28,38 @@ interface FAQItem {
 
 export default function FAQManager() {
   const [question, setQuestion] = useState("");
+  const [title, setTitle] = useState("");
   const [answer, setAnswer] = useState("");
-  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const [faqs] = useState<FAQItem[]>([]);
   const { mutate, data, isPending, error } = useCreateChunks();
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { agentId } = useParams<{ agentId: string }>();
+
+  const { data: sourceData, isLoading } = useFetchSource({
+    workspaceId,
+    agentId,
+    type: "qa",
+  });
   const handleAdd = () => {
     if (!question.trim() || !answer.trim()) return;
 
     const qaText = `Q: ${question.trim()}\nA: ${answer.trim()}`;
 
-    // mutate({
-    //   text: qaText,
-    //   type: "qa",
-    // });
-
-    const newFaq: FAQItem = {
-      id: crypto.randomUUID(),
-      question: question.trim(),
-      answer: answer.trim(),
-      createdAt: new Date().toLocaleString(),
-    };
-
-    setFaqs([newFaq, ...faqs]);
+    mutate({
+      text: qaText,
+      type: "qa",
+      workspaceId,
+      agentId,
+      title,
+    });
     setQuestion("");
     setAnswer("");
+    setTitle("");
   };
 
-  const handleDelete = (id: string) => {
-    setFaqs(faqs.filter((f) => f.id !== id));
-  };
+  const handleDelete = (id: string) => {};
 
-  console.log(data)
+  console.log(data);
 
   return (
     <div className="min-h-screen bg-background p-6 md:p-8 transition-colors duration-300">
@@ -80,13 +76,18 @@ export default function FAQManager() {
           </div>
         </header>
 
-        {/* Input Section */}
         <section className="grid md:grid-cols-[1fr,1.5fr] gap-8">
           <div className="space-y-4">
             <h2 className="text-lg font-semibold flex items-center gap-2">
               <MessageSquare className="h-5 w-5" /> New Question
             </h2>
             <div className="space-y-4">
+              <Input
+                placeholder="Title for this Q&A"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="text-lg border-none bg-card/50 focus-visible:ring-1 focus-visible:ring-border px-4 py-6"
+              />
               <Input
                 placeholder="What is the question?"
                 value={question}
@@ -104,111 +105,78 @@ export default function FAQManager() {
                 disabled={!question.trim() || !answer.trim()}
                 className="w-full py-6 text-base rounded-xl gap-2 transition-all hover:scale-[1.01] active:scale-[0.99]"
               >
-                <Plus className="h-5 w-5" /> Add Q&A Pair
+                {isPending ? (
+                  <>Saving...</>
+                ) : (
+                  <>
+                    <Plus className="h-5 w-5" />
+                    Add Q&A Pair
+                  </>
+                )}
               </Button>
-            </div>
-          </div>
-
-          <div className="bg-card/30 rounded-2xl border border-border/50 overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-border/50 bg-card/50">
-              <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
-                Preview
-              </h2>
-            </div>
-            <div className="p-8 flex-1 flex flex-col justify-center text-center">
-              {question || answer ? (
-                <div className="space-y-4 text-left">
-                  <p className="text-xl font-medium text-foreground">
-                    Q: {question || "..."}
-                  </p>
-                  <p className="text-muted-foreground leading-relaxed italic">
-                    A: {answer || "..."}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-muted-foreground italic">
-                  Start typing to see a preview of your entry.
-                </p>
-              )}
             </div>
           </div>
         </section>
 
-        {/* History Section */}
         <section className="space-y-6 pt-12 border-t border-border">
-          <div className="flex justify-between items-end">
-            <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
-              Recent History
-            </h2>
-            <span className="text-xs text-muted-foreground font-mono bg-accent/50 px-2 py-1 rounded">
-              {faqs.length} Entries
-            </span>
-          </div>
-
-          <div className="rounded-xl border border-border/50 bg-card/30 overflow-hidden">
-            <Table>
-              <TableHeader className="bg-muted/30">
-                <TableRow className="hover:bg-transparent border-border/50">
-                  <TableHead className="w-[40%] px-6">Question</TableHead>
-                  <TableHead className="w-[40%] px-6">Answer</TableHead>
-                  <TableHead className="px-6 text-right">Added At</TableHead>
-                  <TableHead className="w-12.5"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <AnimatePresence mode="popLayout">
-                  {faqs.length === 0 ? (
-                    <TableRow className="hover:bg-transparent">
-                      <TableCell
-                        colSpan={4}
-                        className="h-48 text-center text-muted-foreground italic"
-                      >
-                        No Q&A pairs added yet.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    faqs.map((faq) => (
-                      <motion.tr
-                        key={faq.id}
-                        layout
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 40,
-                        }}
-                        className="group border-border/50 hover:bg-muted/10 transition-colors"
-                      >
-                        <TableCell className="px-6 py-4 font-medium text-foreground align-top">
-                          <div className="line-clamp-2">{faq.question}</div>
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-muted-foreground align-top">
-                          <div className="line-clamp-2">{faq.answer}</div>
-                        </TableCell>
-                        <TableCell className="px-6 py-4 text-right text-xs font-mono text-muted-foreground/60 align-top">
-                          <div className="flex items-center justify-end gap-1">
-                            <Clock className="h-3 w-3" />{" "}
-                            {faq.createdAt.split(",")[1]}
+          <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
+            Recent Entries
+          </h2>
+          <div className="grid gap-4">
+            <AnimatePresence mode="popLayout">
+              {sourceData?.sources?.length === 0 ? (
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-20 text-muted-foreground italic"
+                >
+                  No saved drafts yet. Start writing above.
+                </motion.p>
+              ) : (
+                sourceData?.sources?.map((text) => (
+                  <motion.div
+                    key={text._id}
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  >
+                    <Card className="group border-border/50 hover:border-border transition-colors bg-card/50">
+                      <CardContent className="p-5 flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold truncate text-foreground">
+                            {text.title}
+                          </h3>
+                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground font-mono">
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />{" "}
+                              {formatDate(text.createdAt)}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <Hash className="h-3 w-3" /> {text.words} words
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MemoryStick className="h-3 w-3" />{" "}
+                              {(text.size / 1024).toPrecision(3)}KB size
+                            </span>
                           </div>
-                        </TableCell>
-                        <TableCell className="px-6 py-4 align-top">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(faq.id)}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      </motion.tr>
-                    ))
-                  )}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(text._id)}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
           </div>
         </section>
       </div>

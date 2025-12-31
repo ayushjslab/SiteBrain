@@ -5,7 +5,7 @@ import { MessageLimitCard } from "@/module/agent-settings/components/message-lim
 
 const GeneralSettingsPage = () => {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 mx-15">
       <div className="px-10 py-10">
         <h1 className="text-3xl font-semibold tracking-tight">Agent Settings</h1>
       <p className="text-black/60 dark:text-white/60">

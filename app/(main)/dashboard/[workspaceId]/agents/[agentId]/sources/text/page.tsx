@@ -2,23 +2,15 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Trash2,
-  Plus,
-  Type,
-  Clock,
-  Hash,
-  Moon,
-  Sun,
-  MemoryStick,
-} from "lucide-react";
+import { Trash2, Plus, Type, Clock, Hash, MemoryStick } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCreateChunks } from "@/module/sources/hooks/useCreateChunks";
 import { useParams } from "next/navigation";
-import { createChunksWithEmbedding } from "@/module/sources/actions";
+import { useFetchSource } from "@/module/sources/hooks/useFetchSource";
+import { formatDate } from "@/lib/formate-date";
 
 interface SavedText {
   id: string;
@@ -31,7 +23,7 @@ interface SavedText {
 export default function TextManager() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [savedTexts, setSavedTexts] = useState<SavedText[]>([]);
+  const [savedTexts] = useState<SavedText[]>([]);
 
   const wordCount = useMemo(() => {
     return content.trim() === "" ? 0 : content.trim().split(/\s+/).length;
@@ -40,6 +32,12 @@ export default function TextManager() {
   const { agentId } = useParams<{ agentId: string }>();
 
   const { mutate, data, isPending, error } = useCreateChunks();
+
+  const { data: sourceData, isLoading } = useFetchSource({
+    workspaceId,
+    agentId,
+    type: "text",
+  });
 
   const handleSave = () => {
     if (!title.trim() || !content.trim()) return;
@@ -61,22 +59,25 @@ export default function TextManager() {
       createdAt: new Date().toLocaleString(),
     };
 
-    setSavedTexts([newEntry, ...savedTexts]);
     setTitle("");
     setContent("");
   };
 
-  const handleDelete = (id: string) => {
-    setSavedTexts(savedTexts.filter((t) => t.id !== id));
-  };
+  const handleDelete = (id: string) => {};
 
   const sizeInBytes = new TextEncoder().encode(content).length;
 
   console.log(data);
 
+  console.log(sourceData?.sources);
+
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div className="min-h-screen bg-background p-6 md:p-8 transition-colors duration-300">
-      <div className="max-w-4xl ml-10 md:mx-auto space-y-12">
+      <div className="mx-15 flex flex-col justify-center space-y-12">
         <header className="flex justify-between items-center border-b pb-8 border-border">
           <div className="space-y-1">
             <h1 className="text-4xl font-bold tracking-tight text-foreground">
@@ -121,9 +122,15 @@ export default function TextManager() {
           <Button
             onClick={handleSave}
             disabled={!title.trim() || !content.trim()}
-            className="w-full md:w-auto px-8 py-6 text-base rounded-full gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+            className="w-full px-8 py-6 text-base rounded-full gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
-            <Plus className="h-5 w-5" /> Save Entry
+            {isPending ? (
+              <>Saving...</>
+            ) : (
+              <>
+                <Plus className="h-5 w-5" /> Save Entry
+              </>
+            )}
           </Button>
         </section>
 
@@ -134,7 +141,7 @@ export default function TextManager() {
           </h2>
           <div className="grid gap-4">
             <AnimatePresence mode="popLayout">
-              {savedTexts.length === 0 ? (
+              {sourceData?.sources?.length === 0 ? (
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -143,9 +150,9 @@ export default function TextManager() {
                   No saved drafts yet. Start writing above.
                 </motion.p>
               ) : (
-                savedTexts.map((text) => (
+                sourceData?.sources?.map((text) => (
                   <motion.div
-                    key={text.id}
+                    key={text._id}
                     layout
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -160,18 +167,22 @@ export default function TextManager() {
                           </h3>
                           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground font-mono">
                             <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" /> {text.createdAt}
+                              <Clock className="h-3 w-3" />{" "}
+                              {formatDate(text.createdAt)}
                             </span>
                             <span className="flex items-center gap-1">
-                              <Hash className="h-3 w-3" /> {text.wordCount}{" "}
-                              words
+                              <Hash className="h-3 w-3" /> {text.words} words
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MemoryStick className="h-3 w-3" />{" "}
+                              {(text.size / 1024).toPrecision(3)}KB size
                             </span>
                           </div>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={() => handleDelete(text.id)}
+                          onClick={() => handleDelete(text._id)}
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
                         >
                           <Trash2 className="h-4 w-4" />

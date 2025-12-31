@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createChunksWithEmbedding } from "../actions";
 
 type CreateChunksInput = {
@@ -11,6 +11,8 @@ type CreateChunksInput = {
 };
 
 export function useCreateChunks() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: async ({
       text,
@@ -18,7 +20,7 @@ export function useCreateChunks() {
       workspaceId,
       agentId,
       title,
-      words
+      words,
     }: CreateChunksInput) => {
       if (!text) return [];
       return await createChunksWithEmbedding({
@@ -27,7 +29,17 @@ export function useCreateChunks() {
         workspaceId,
         type,
         title,
-        words
+        words,
+      });
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: [
+          "sources",
+          variables.workspaceId,
+          variables.agentId,
+          variables.type,
+        ],
       });
     },
   });
