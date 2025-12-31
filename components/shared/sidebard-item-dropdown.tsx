@@ -33,7 +33,11 @@ export function SidebarItemDropdown({
           open
             ? "dark:hover:bg-white/30 dark:hover:text-white hover:bg-gray-200 hover:text-black"
             : "dark:hover:bg-white dark:hover:text-black hover:bg-black hover:text-white"
-        } ${pathName.includes(label.toLowerCase()) ? "bg-black text-white dark:bg-white/80 dark:text-black" :""}`}
+        } ${
+          pathName.includes(label.toLowerCase())
+            ? "bg-black text-white dark:bg-white/80 dark:text-black"
+            : ""
+        }`}
       >
         <div className="flex items-center gap-2 font-medium">
           <Icon className="h-4 w-4 ml-1" />
@@ -67,7 +71,8 @@ export function SidebarItemDropdown({
                 className={`relative rounded-md flex items-center gap-2 px-3 py-2 text-left transition cursor-pointer w-fit ${
                   nav.soon
                     ? "opacity-60 cursor-not-allowed"
-                    : pathName.includes(nav.label.toLowerCase())
+                    : pathName.includes(nav.label.toLowerCase()) ||
+                      (nav.label === "Q&A" && pathName.includes("qna"))
                     ? "bg-gray-300 dark:text-black"
                     : "hover:dark:text-black hover:bg-gray-100 hover:text-foreground"
                 }`}
@@ -75,7 +80,6 @@ export function SidebarItemDropdown({
                 {nav.Icon && <nav.Icon className="h-3 w-3" />}
                 <span>{nav.label}</span>
 
-                {/* SOON TAG */}
                 {nav.soon && (
                   <span className="absolute top-2.5 -right-16 rounded-full bg-yellow-500 px-1.5 py-0.5 text-[9px] font-semibold text-black">
                     SOON

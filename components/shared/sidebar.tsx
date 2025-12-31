@@ -81,7 +81,7 @@ export function Sidebar() {
         { label: "Files", url: `${BASE_PATH}/sources/files`, Icon: FileText },
         { label: "Text", url: `${BASE_PATH}/sources/text`, Icon: Type },
         { label: "Website", url: `${BASE_PATH}/sources/website`, Icon: Globe },
-        { label: "Q&A", url: `${BASE_PATH}/sources/q-a`, Icon: HelpCircle },
+        { label: "Q&A", url: `${BASE_PATH}/sources/qna`, Icon: HelpCircle },
         {
           label: "Notion",
           url: `${BASE_PATH}/sources`,

@@ -5,6 +5,7 @@ import { embed } from "ai";
 import { google } from "@ai-sdk/google";
 import { connectDB } from "@/lib/connectDB";
 import Source from "@/models/source";
+import { qdrant } from "@/lib/qdrant";
 
 type ContentType = "qa" | "text";
 
@@ -48,8 +49,9 @@ export async function createChunksWithEmbedding({
     chunks = await splitter.splitText(cleanedText);
   }
 
-  const sizeInBytes = new TextEncoder().encode(cleanedText).length;
+  if (chunks.length === 0) return [];
 
+  const sizeInBytes = new TextEncoder().encode(cleanedText).length;
   const records: ChunkWithEmbedding[] = [];
 
   await connectDB();
@@ -63,7 +65,7 @@ export async function createChunksWithEmbedding({
     size: sizeInBytes,
   });
 
-  console.log(source);
+  const points = [];
 
   for (const chunk of chunks) {
     const { embedding } = await embed({
@@ -71,8 +73,21 @@ export async function createChunksWithEmbedding({
       value: chunk,
     });
 
+    const pointId = crypto.randomUUID();
+
+    points.push({
+      id: pointId,
+      vector: embedding,
+      payload: {
+        text: chunk,
+        workspaceId,
+        agentId,
+        sourceId: source._id.toString(),
+      },
+    });
+
     records.push({
-      id: `${workspaceId}:${agentId}:${source._id}:${crypto.randomUUID()}`,
+      id: pointId,
       text: chunk,
       embedding,
       workspaceId,
@@ -81,7 +96,20 @@ export async function createChunksWithEmbedding({
     });
   }
 
-  console.log(records);
+  try {
+    await qdrant.getCollection("chunks");
+  } catch (error) {
+    await qdrant.createCollection("chunks", {
+      vectors: {
+        size: 768,
+        distance: "Cosine",
+      },
+    });
+  }
+
+  await qdrant.upsert("chunks", {
+    points,
+  });
 
   return records;
 }
@@ -147,4 +175,73 @@ export async function sourceFetching({
       success: false,
     };
   }
+}
+
+export async function searchSimilarChunks({
+  query,
+  workspaceId,
+  agentId,
+  limit = 5,
+}: {
+  query: string;
+  workspaceId: string;
+  agentId: string;
+  limit?: number;
+}) {
+  const { embedding } = await embed({
+    model: google.textEmbeddingModel("text-embedding-004"),
+    value: query,
+  });
+
+  const searchResults = await qdrant.search("chunks", {
+    vector: embedding,
+    limit,
+    filter: {
+      must: [
+        {
+          key: "workspaceId",
+          match: { value: workspaceId },
+        },
+        {
+          key: "agentId",
+          match: { value: agentId },
+        },
+      ],
+    },
+  });
+
+  return searchResults.map((result) => ({
+    id: result.id,
+    text: result?.payload?.text,
+    score: result.score,
+    sourceId: result?.payload?.sourceId,
+  }));
+}
+
+export async function deleteChunksBySourceId(sourceId: string) {
+    
+ try {
+     await qdrant.delete("chunks", {
+    filter: {
+      must: [
+        {
+          key: "sourceId",
+          match: { value: sourceId },
+        },
+      ],
+    },
+  });
+  
+  return {
+    success: true,
+    message: "Delete successfully"
+  }
+
+ } catch (error) {
+    console.log(error)
+    return {
+        success: false,
+        error: "Error during deletion"
+    }
+ }
 }
