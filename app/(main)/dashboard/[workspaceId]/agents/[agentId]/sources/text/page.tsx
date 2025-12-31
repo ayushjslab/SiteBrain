@@ -2,7 +2,15 @@
 
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Plus, Type, Clock, Hash, MemoryStick } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  Type,
+  Clock,
+  Hash,
+  MemoryStick,
+  Loader2Icon,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,6 +19,7 @@ import { useCreateChunks } from "@/module/sources/hooks/useCreateChunks";
 import { useParams } from "next/navigation";
 import { useFetchSource } from "@/module/sources/hooks/useFetchSource";
 import { formatDate } from "@/lib/formate-date";
+import { useDeleteChunks } from "@/module/sources/hooks/useDeleteChunks";
 
 interface SavedText {
   id: string;
@@ -63,13 +72,14 @@ export default function TextManager() {
     setContent("");
   };
 
-  const handleDelete = (id: string) => {};
+  const { mutate: deletionMutate, isPending: deletionLoading } =
+    useDeleteChunks();
+
+  const handleDelete = (id: string) => {
+    deletionMutate({ sourceId: id });
+  };
 
   const sizeInBytes = new TextEncoder().encode(content).length;
-
-  console.log(data);
-
-  console.log(sourceData?.sources);
 
   if (isLoading) {
     return <p>Loading...</p>;
@@ -183,9 +193,13 @@ export default function TextManager() {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(text._id)}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                          className="opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deletionLoading ? (
+                            <Loader2Icon className="animate-spin h- w-4" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                           <span className="sr-only">Delete</span>
                         </Button>
                       </CardContent>

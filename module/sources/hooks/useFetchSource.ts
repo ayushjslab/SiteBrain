@@ -15,7 +15,7 @@ export function useFetchSource({
   }
 
   return useQuery({
-    queryKey: ["sources", workspaceId, agentId, type],
+    queryKey: ["sources"],
     queryFn: async () => {
       return sourceFetching({ workspaceId, agentId, type });
     },

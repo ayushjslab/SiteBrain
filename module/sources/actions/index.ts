@@ -219,29 +219,44 @@ export async function searchSimilarChunks({
 }
 
 export async function deleteChunksBySourceId(sourceId: string) {
-    
- try {
-     await qdrant.delete("chunks", {
-    filter: {
-      must: [
-        {
-          key: "sourceId",
-          match: { value: sourceId },
-        },
-      ],
-    },
-  });
-  
-  return {
-    success: true,
-    message: "Delete successfully"
-  }
-
- } catch (error) {
-    console.log(error)
-    return {
+  try {
+    if (!sourceId) {
+      return {
         success: false,
-        error: "Error during deletion"
+        error: "Missing source ID",
+      };
     }
- }
+
+    await connectDB();
+
+    await Source.deleteMany({ _id: sourceId });
+
+    await qdrant.createPayloadIndex("chunks", {
+      field_name: "sourceId",
+      field_schema: "keyword",
+      wait: true,
+    });
+    await qdrant.delete("chunks", {
+      wait: true,
+      filter: {
+        must: [
+          {
+            key: "sourceId",
+            match: { value: sourceId.toString() },
+          },
+        ],
+      },
+    });
+
+    return {
+      success: true,
+      message: "Delete successfully",
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      success: false,
+      error: "Error during deletion",
+    };
+  }
 }

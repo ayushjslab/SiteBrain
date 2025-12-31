@@ -34,12 +34,7 @@ export function useCreateChunks() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
-        queryKey: [
-          "sources",
-          variables.workspaceId,
-          variables.agentId,
-          variables.type,
-        ],
+        queryKey: ["sources"],
       });
     },
   });
