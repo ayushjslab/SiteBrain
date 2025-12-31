@@ -32,7 +32,6 @@ interface SavedText {
 export default function TextManager() {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [savedTexts] = useState<SavedText[]>([]);
 
   const wordCount = useMemo(() => {
     return content.trim() === "" ? 0 : content.trim().split(/\s+/).length;
@@ -40,7 +39,7 @@ export default function TextManager() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { agentId } = useParams<{ agentId: string }>();
 
-  const { mutate, data, isPending, error } = useCreateChunks();
+  const { mutate, isPending } = useCreateChunks();
 
   const { data: sourceData, isLoading } = useFetchSource({
     workspaceId,
@@ -86,121 +85,127 @@ export default function TextManager() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-8 transition-colors duration-300">
-      <div className="mx-15 flex flex-col justify-center space-y-12">
-        <header className="flex justify-between items-center border-b pb-8 border-border">
-          <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">
-              Trained By Text
-            </h1>
-            <p className="text-muted-foreground">
-              Minimalist text management and analysis.
-            </p>
-          </div>
+    <div className="min-h-screen bg-background transition-colors duration-300">
+      {/* Container: Max-width 4xl is ideal for reading/writing focus */}
+      <div className="max-w-4xl mx-auto px-4 py-12 md:px-8 space-y-12">
+        {/* Header Section */}
+        <header className="space-y-2 border-l-4 border-primary pl-6 py-2">
+          <h1 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+            Trained By Text
+          </h1>
+          <p className="text-muted-foreground text-lg">
+            Minimalist text management and analysis.
+          </p>
         </header>
 
-        <section className="space-y-6">
-          <div className="space-y-4">
+        {/* Input Section: Glass-like Card */}
+        <section className="relative overflow-hidden rounded-3xl border bg-card/30 p-1 backdrop-blur-sm shadow-xl shadow-foreground/5">
+          <div className="bg-background rounded-[22px] p-4 md:p-6 space-y-4">
             <Input
               placeholder="Give your text title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="text-xl font-medium border-none focus-visible:ring-0 placeholder:text-muted-foreground/50 h-auto"
+              className="text-2xl font-semibold border-none focus-visible:ring-0 placeholder:text-muted-foreground/30 h-auto p-0 px-2"
             />
-            <div className="relative group">
+
+            <div className="relative">
               <Textarea
-                placeholder="Start writing here..."
+                placeholder="Start writing your thoughts..."
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="h-75 overflow-y-auto text-lg leading-relaxed border-none focus-visible:ring-0 resize-none placeholder:text-muted-foreground/50"
+                className="min-h-75 text-lg leading-relaxed border-none focus-visible:ring-0 resize-none placeholder:text-muted-foreground/30 p-2"
               />
-              <div className="absolute bottom-2 right-4 flex items-center gap-4 text-xs font-mono text-muted-foreground/60 transition-opacity">
-                <span className="flex items-center gap-1">
-                  <Hash className="h-3 w-3" /> {wordCount} words
+
+              {/* Floating Stats Bar */}
+              <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-border/50 text-[10px] uppercase tracking-widest font-bold text-muted-foreground/80">
+                <span className="flex items-center gap-1.5 bg-secondary/50 px-2 py-1 rounded-md">
+                  <Hash className="h-3.5 w-3.5" /> {wordCount} Words
                 </span>
-                <span className="flex items-center gap-1">
-                  <Type className="h-3 w-3" /> {content.length} chars
+                <span className="flex items-center gap-1.5 bg-secondary/50 px-2 py-1 rounded-md">
+                  <Type className="h-3.5 w-3.5" /> {content.length} Chars
                 </span>
-                <span className="flex items-center gap-1">
-                  <MemoryStick className="h-3 w-3" />{" "}
-                  {(sizeInBytes / 1024).toPrecision(3)}KB size
+                <span className="flex items-center gap-1.5 bg-secondary/50 px-2 py-1 rounded-md">
+                  <MemoryStick className="h-3.5 w-3.5" />{" "}
+                  {(sizeInBytes / 1024).toFixed(2)} KB
                 </span>
               </div>
             </div>
-          </div>
 
-          <Button
-            onClick={handleSave}
-            disabled={!title.trim() || !content.trim()}
-            className="w-full px-8 py-6 text-base rounded-full gap-2 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
-          >
-            {isPending ? (
-              <>Saving...</>
-            ) : (
-              <>
-                <Plus className="h-5 w-5" /> Save Entry
-              </>
-            )}
-          </Button>
+            <Button
+              onClick={handleSave}
+              disabled={!title.trim() || !content.trim() || isPending}
+              className="w-full h-14 text-lg font-semibold rounded-2xl gap-3 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 active:scale-95"
+            >
+              {isPending ? (
+                <Loader2Icon className="animate-spin h-5 w-5" />
+              ) : (
+                <>
+                  <Plus className="h-5 w-5" /> Save Entry
+                </>
+              )}
+            </Button>
+          </div>
         </section>
 
-        {/* History Table */}
-        <section className="space-y-6 pt-12 border-t border-border">
-          <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
-            Recent Entries
-          </h2>
-          <div className="grid gap-4">
+        {/* History Section */}
+        <section className="space-y-8">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground/70 flex items-center gap-2">
+              <span className="w-8 h-px bg-muted-foreground/30"></span>
+              Recent Entries
+            </h2>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-1">
             <AnimatePresence mode="popLayout">
               {sourceData?.sources?.length === 0 ? (
-                <motion.p
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="text-center py-20 text-muted-foreground italic"
+                  className="text-center py-16 border-2 border-dashed rounded-3xl text-muted-foreground"
                 >
-                  No saved drafts yet. Start writing above.
-                </motion.p>
+                  <p className="italic">
+                    No saved drafts yet. Start writing above.
+                  </p>
+                </motion.div>
               ) : (
                 sourceData?.sources?.map((text) => (
                   <motion.div
                     key={text._id}
                     layout
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   >
-                    <Card className="group border-border/50 hover:border-border transition-colors bg-card/50">
-                      <CardContent className="p-5 flex items-center justify-between gap-4">
+                    <Card className="group relative border-border/40 bg-card/40 hover:bg-card hover:shadow-md transition-all duration-300 rounded-2xl overflow-hidden">
+                      <CardContent className="p-6 flex items-center justify-between gap-6">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate text-foreground">
+                          <h3 className="text-lg font-bold truncate text-foreground group-hover:text-primary transition-colors">
                             {text.title}
                           </h3>
-                          <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground font-mono">
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />{" "}
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-xs text-muted-foreground/80 font-medium">
+                            <span className="flex items-center gap-1.5">
+                              <Clock className="h-3.5 w-3.5 text-primary/60" />
                               {formatDate(text.createdAt)}
                             </span>
-                            <span className="flex items-center gap-1">
-                              <Hash className="h-3 w-3" /> {text.words} words
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MemoryStick className="h-3 w-3" />{" "}
-                              {(text.size / 1024).toPrecision(3)}KB size
+                            <span className="flex items-center gap-1.5">
+                              <Hash className="h-3.5 w-3.5 text-primary/60" />
+                              {text.words} words
                             </span>
                           </div>
                         </div>
+
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(text._id)}
-                          className="opacity-0 cursor-pointer group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
+                          className="h-10 w-10 rounded-xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                         >
                           {deletionLoading ? (
-                            <Loader2Icon className="animate-spin h- w-4" />
+                            <Loader2Icon className="animate-spin h-4 w-4" />
                           ) : (
                             <Trash2 className="h-4 w-4" />
                           )}
-                          <span className="sr-only">Delete</span>
                         </Button>
                       </CardContent>
                     </Card>
