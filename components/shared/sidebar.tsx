@@ -78,11 +78,11 @@ export function Sidebar() {
       label: "Sources",
       Icon: FolderOpenDot,
       navigations: [
-        { label: "Files", url: "/", Icon: FileText },
-        { label: "Text", url: "/", Icon: Type },
-        { label: "Website", url: "/", Icon: Globe },
-        { label: "Q&A", url: "/", Icon: HelpCircle },
-        { label: "Notion", url: "/", Icon: RiNotionFill, soon: true },
+        { label: "Files", url: `${BASE_PATH}/sources/files`, Icon: FileText },
+        { label: "Text", url: `${BASE_PATH}/sources/text`, Icon: Type },
+        { label: "Website", url: `${BASE_PATH}/sources/website`, Icon: Globe },
+        { label: "Q&A", url: `${BASE_PATH}/sources/q-a`, Icon: HelpCircle },
+        { label: "Notion", url: `${BASE_PATH}/sources`, Icon: RiNotionFill, soon: true },
       ],
     },
     {
