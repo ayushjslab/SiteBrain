@@ -46,7 +46,7 @@ export function Sidebar() {
   const isAgentPage = /^\/dashboard\/[^/]+\/agents\/[^/]+(\/.*)?$/.test(
     pathName
   );
-  const BASE_PATH = `/dashboard/${workspaceId}/agents/${agentId}`
+  const BASE_PATH = `/dashboard/${workspaceId}/agents/${agentId}`;
   const navItems = [
     {
       label: "Activity",
@@ -82,7 +82,12 @@ export function Sidebar() {
         { label: "Text", url: `${BASE_PATH}/sources/text`, Icon: Type },
         { label: "Website", url: `${BASE_PATH}/sources/website`, Icon: Globe },
         { label: "Q&A", url: `${BASE_PATH}/sources/q-a`, Icon: HelpCircle },
-        { label: "Notion", url: `${BASE_PATH}/sources`, Icon: RiNotionFill, soon: true },
+        {
+          label: "Notion",
+          url: `${BASE_PATH}/sources`,
+          Icon: RiNotionFill,
+          soon: true,
+        },
       ],
     },
     {
@@ -110,7 +115,11 @@ export function Sidebar() {
       url: "/",
       Icon: Settings2,
       navigations: [
-        { label: "General", url: `${BASE_PATH}/settings/general`, Icon: SlidersHorizontal },
+        {
+          label: "General",
+          url: `${BASE_PATH}/settings/general`,
+          Icon: SlidersHorizontal,
+        },
         { label: "AI", url: "/", Icon: Brain },
         { label: "Chat interface", url: "/", Icon: Palette },
         { label: "Security", url: "/", Icon: ShieldCheck },
@@ -268,7 +277,7 @@ function SidebarItem({
       onClick={() => router.push(url)}
       className={`relative flex items-center gap-3 rounded-lg px-3 pr-12 py-2 transition-colors cursor-pointer
     ${
-      pathName.includes(label.toLowerCase())
+      pathName.includes(url)
         ? "bg-gray-300 text-black dark:text-background"
         : "text-black dark:text-white hover:text-white hover:bg-black dark:hover:bg-white dark:hover:text-black"
     }`}

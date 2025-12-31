@@ -31,9 +31,9 @@ export function SidebarItemDropdown({
         onClick={() => setOpen(!open)}
         className={`flex w-full items-center cursor-pointer justify-between rounded-md px-3 py-2 text-foreground  dark:hover:text-black ${
           open
-            ? "dark:hover:bg-white/30 dark:hover:text-white hover:bg-gray-200"
+            ? "dark:hover:bg-white/30 dark:hover:text-white hover:bg-gray-200 hover:text-black"
             : "dark:hover:bg-white dark:hover:text-black hover:bg-black hover:text-white"
-        }`}
+        } ${pathName.includes(label.toLowerCase()) ? "bg-black text-white dark:bg-white/80 dark:text-black" :""}`}
       >
         <div className="flex items-center gap-2 font-medium">
           <Icon className="h-4 w-4 ml-1" />

@@ -1,53 +1,82 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Trash2, Plus, MessageSquare, Clock, ArrowLeft, Moon, Sun } from "lucide-react"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Trash2,
+  Plus,
+  MessageSquare,
+  Clock,
+  ArrowLeft,
+  Moon,
+  Sun,
+} from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useCreateChunks } from "@/module/sources/hooks/useCreateChunks";
 
 interface FAQItem {
-  id: string
-  question: string
-  answer: string
-  createdAt: string
+  id: string;
+  question: string;
+  answer: string;
+  createdAt: string;
 }
 
 export default function FAQManager() {
-  const [question, setQuestion] = useState("")
-  const [answer, setAnswer] = useState("")
-  const [faqs, setFaqs] = useState<FAQItem[]>([])
-
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState("");
+  const [faqs, setFaqs] = useState<FAQItem[]>([]);
+  const { mutate, data, isPending, error } = useCreateChunks();
   const handleAdd = () => {
-    if (!question.trim() || !answer.trim()) return
+    if (!question.trim() || !answer.trim()) return;
+
+    const qaText = `Q: ${question.trim()}\nA: ${answer.trim()}`;
+
+    // mutate({
+    //   text: qaText,
+    //   type: "qa",
+    // });
 
     const newFaq: FAQItem = {
       id: crypto.randomUUID(),
       question: question.trim(),
       answer: answer.trim(),
       createdAt: new Date().toLocaleString(),
-    }
+    };
 
-    setFaqs([newFaq, ...faqs])
-    setQuestion("")
-    setAnswer("")
-  }
+    setFaqs([newFaq, ...faqs]);
+    setQuestion("");
+    setAnswer("");
+  };
 
   const handleDelete = (id: string) => {
-    setFaqs(faqs.filter((f) => f.id !== id))
-  }
+    setFaqs(faqs.filter((f) => f.id !== id));
+  };
+
+  console.log(data)
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-12 transition-colors duration-300">
-      <div className="max-w-5xl mx-auto space-y-12">
+    <div className="min-h-screen bg-background p-6 md:p-8 transition-colors duration-300">
+      <div className="max-w-4xl ml-10 md:mx-auto space-y-12">
         {/* Header */}
         <header className="flex justify-between items-center border-b pb-8 border-border">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">Q&A Trained</h1>
-            <p className="text-muted-foreground">Manage your questions and answers systematically.</p>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
+              Q&A Trained
+            </h1>
+            <p className="text-muted-foreground">
+              Manage your questions and answers systematically.
+            </p>
           </div>
         </header>
 
@@ -82,16 +111,24 @@ export default function FAQManager() {
 
           <div className="bg-card/30 rounded-2xl border border-border/50 overflow-hidden flex flex-col">
             <div className="p-6 border-b border-border/50 bg-card/50">
-              <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Preview</h2>
+              <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
+                Preview
+              </h2>
             </div>
             <div className="p-8 flex-1 flex flex-col justify-center text-center">
               {question || answer ? (
                 <div className="space-y-4 text-left">
-                  <p className="text-xl font-medium text-foreground">Q: {question || "..."}</p>
-                  <p className="text-muted-foreground leading-relaxed italic">A: {answer || "..."}</p>
+                  <p className="text-xl font-medium text-foreground">
+                    Q: {question || "..."}
+                  </p>
+                  <p className="text-muted-foreground leading-relaxed italic">
+                    A: {answer || "..."}
+                  </p>
                 </div>
               ) : (
-                <p className="text-muted-foreground italic">Start typing to see a preview of your entry.</p>
+                <p className="text-muted-foreground italic">
+                  Start typing to see a preview of your entry.
+                </p>
               )}
             </div>
           </div>
@@ -100,7 +137,9 @@ export default function FAQManager() {
         {/* History Section */}
         <section className="space-y-6 pt-12 border-t border-border">
           <div className="flex justify-between items-end">
-            <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Recent History</h2>
+            <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
+              Recent History
+            </h2>
             <span className="text-xs text-muted-foreground font-mono bg-accent/50 px-2 py-1 rounded">
               {faqs.length} Entries
             </span>
@@ -120,7 +159,10 @@ export default function FAQManager() {
                 <AnimatePresence mode="popLayout">
                   {faqs.length === 0 ? (
                     <TableRow className="hover:bg-transparent">
-                      <TableCell colSpan={4} className="h-48 text-center text-muted-foreground italic">
+                      <TableCell
+                        colSpan={4}
+                        className="h-48 text-center text-muted-foreground italic"
+                      >
                         No Q&A pairs added yet.
                       </TableCell>
                     </TableRow>
@@ -132,7 +174,11 @@ export default function FAQManager() {
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, scale: 0.98 }}
-                        transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 40,
+                        }}
                         className="group border-border/50 hover:bg-muted/10 transition-colors"
                       >
                         <TableCell className="px-6 py-4 font-medium text-foreground align-top">
@@ -143,7 +189,8 @@ export default function FAQManager() {
                         </TableCell>
                         <TableCell className="px-6 py-4 text-right text-xs font-mono text-muted-foreground/60 align-top">
                           <div className="flex items-center justify-end gap-1">
-                            <Clock className="h-3 w-3" /> {faq.createdAt.split(",")[1]}
+                            <Clock className="h-3 w-3" />{" "}
+                            {faq.createdAt.split(",")[1]}
                           </div>
                         </TableCell>
                         <TableCell className="px-6 py-4 align-top">
@@ -166,5 +213,5 @@ export default function FAQManager() {
         </section>
       </div>
     </div>
-  )
+  );
 }

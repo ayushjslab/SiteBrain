@@ -1,32 +1,57 @@
-"use client"
+"use client";
 
-import { useState, useMemo } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Trash2, Plus, Type, Clock, Hash, Moon, Sun } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Trash2,
+  Plus,
+  Type,
+  Clock,
+  Hash,
+  Moon,
+  Sun,
+  MemoryStick,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent } from "@/components/ui/card";
+import { useCreateChunks } from "@/module/sources/hooks/useCreateChunks";
+import { useParams } from "next/navigation";
+import { createChunksWithEmbedding } from "@/module/sources/actions";
 
 interface SavedText {
-  id: string
-  title: string
-  content: string
-  wordCount: number
-  createdAt: string
+  id: string;
+  title: string;
+  content: string;
+  wordCount: number;
+  createdAt: string;
 }
 
 export default function TextManager() {
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [savedTexts, setSavedTexts] = useState<SavedText[]>([])
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [savedTexts, setSavedTexts] = useState<SavedText[]>([]);
 
   const wordCount = useMemo(() => {
-    return content.trim() === "" ? 0 : content.trim().split(/\s+/).length
-  }, [content])
+    return content.trim() === "" ? 0 : content.trim().split(/\s+/).length;
+  }, [content]);
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { agentId } = useParams<{ agentId: string }>();
+
+  const { mutate, data, isPending, error } = useCreateChunks();
 
   const handleSave = () => {
-    if (!title.trim() || !content.trim()) return
+    if (!title.trim() || !content.trim()) return;
+
+    mutate({
+      text: content,
+      type: "text",
+      workspaceId,
+      agentId,
+      title,
+      words: wordCount,
+    });
 
     const newEntry: SavedText = {
       id: crypto.randomUUID(),
@@ -34,29 +59,35 @@ export default function TextManager() {
       content: content.trim(),
       wordCount,
       createdAt: new Date().toLocaleString(),
-    }
+    };
 
-    setSavedTexts([newEntry, ...savedTexts])
-    setTitle("")
-    setContent("")
-  }
+    setSavedTexts([newEntry, ...savedTexts]);
+    setTitle("");
+    setContent("");
+  };
 
   const handleDelete = (id: string) => {
-    setSavedTexts(savedTexts.filter((t) => t.id !== id))
-  }
+    setSavedTexts(savedTexts.filter((t) => t.id !== id));
+  };
+
+  const sizeInBytes = new TextEncoder().encode(content).length;
+
+  console.log(data);
 
   return (
-    <div className="min-h-screen bg-background p-6 md:p-12 transition-colors duration-300">
-      <div className="max-w-4xl mx-auto space-y-12">
-        {/* Header */}
+    <div className="min-h-screen bg-background p-6 md:p-8 transition-colors duration-300">
+      <div className="max-w-4xl ml-10 md:mx-auto space-y-12">
         <header className="flex justify-between items-center border-b pb-8 border-border">
           <div className="space-y-1">
-            <h1 className="text-4xl font-bold tracking-tight text-foreground">Trained By Text</h1>
-            <p className="text-muted-foreground">Minimalist text management and analysis.</p>
+            <h1 className="text-4xl font-bold tracking-tight text-foreground">
+              Trained By Text
+            </h1>
+            <p className="text-muted-foreground">
+              Minimalist text management and analysis.
+            </p>
           </div>
         </header>
 
-        {/* Editor Section */}
         <section className="space-y-6">
           <div className="space-y-4">
             <Input
@@ -79,6 +110,10 @@ export default function TextManager() {
                 <span className="flex items-center gap-1">
                   <Type className="h-3 w-3" /> {content.length} chars
                 </span>
+                <span className="flex items-center gap-1">
+                  <MemoryStick className="h-3 w-3" />{" "}
+                  {(sizeInBytes / 1024).toPrecision(3)}KB size
+                </span>
               </div>
             </div>
           </div>
@@ -94,7 +129,9 @@ export default function TextManager() {
 
         {/* History Table */}
         <section className="space-y-6 pt-12 border-t border-border">
-          <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">Recent Entries</h2>
+          <h2 className="text-sm font-mono uppercase tracking-widest text-muted-foreground">
+            Recent Entries
+          </h2>
           <div className="grid gap-4">
             <AnimatePresence mode="popLayout">
               {savedTexts.length === 0 ? (
@@ -118,13 +155,16 @@ export default function TextManager() {
                     <Card className="group border-border/50 hover:border-border transition-colors bg-card/50">
                       <CardContent className="p-5 flex items-center justify-between gap-4">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold truncate text-foreground">{text.title}</h3>
+                          <h3 className="font-semibold truncate text-foreground">
+                            {text.title}
+                          </h3>
                           <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground font-mono">
                             <span className="flex items-center gap-1">
                               <Clock className="h-3 w-3" /> {text.createdAt}
                             </span>
                             <span className="flex items-center gap-1">
-                              <Hash className="h-3 w-3" /> {text.wordCount} words
+                              <Hash className="h-3 w-3" /> {text.wordCount}{" "}
+                              words
                             </span>
                           </div>
                         </div>
@@ -147,5 +187,5 @@ export default function TextManager() {
         </section>
       </div>
     </div>
-  )
+  );
 }

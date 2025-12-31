@@ -19,7 +19,7 @@ export default function AgentsPage() {
     return <p className="flex items-center justify-center">Loading...</p>;
   }
   return (
-    <div className="min-h-full px-6 py-8">
+    <div className="px-6 py-8">
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}

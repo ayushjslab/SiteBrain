@@ -68,6 +68,7 @@ export async function CreateNewAgent({
 
 export async function FetchAllAgents(workspaceId: string) {
   try {
+    const _ = Agent
     if (!workspaceId) {
       return {
         ok: false,
