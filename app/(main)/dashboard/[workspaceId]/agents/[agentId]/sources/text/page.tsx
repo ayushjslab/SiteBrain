@@ -20,6 +20,7 @@ import { useParams } from "next/navigation";
 import { useFetchSource } from "@/module/sources/hooks/useFetchSource";
 import { formatDate } from "@/lib/formate-date";
 import { useDeleteChunks } from "@/module/sources/hooks/useDeleteChunks";
+import { useRetriveContext } from "@/module/sources/hooks/useRetriveContext";
 
 interface SavedText {
   id: string;
@@ -46,6 +47,21 @@ export default function TextManager() {
     agentId,
     type: "text",
   });
+
+  const {
+    data: retriveData,
+    refetch,
+    error,
+  } = useRetriveContext({ workspaceId, agentId }, { enabled: false });
+
+  const handleFetch = async () => {
+    try {
+      const result = await refetch(); // 👈 fetches on click
+      console.log(result.data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const handleSave = () => {
     if (!title.trim() || !content.trim()) return;
@@ -143,6 +159,13 @@ export default function TextManager() {
                   <Plus className="h-5 w-5" /> Save Entry
                 </>
               )}
+            </Button>
+
+            <Button
+              onClick={handleFetch}
+              className="w-full h-14 text-lg font-semibold rounded-2xl gap-3 shadow-lg shadow-primary/20 transition-all hover:-translate-y-0.5 active:scale-95"
+            >
+              fetch
             </Button>
           </div>
         </section>

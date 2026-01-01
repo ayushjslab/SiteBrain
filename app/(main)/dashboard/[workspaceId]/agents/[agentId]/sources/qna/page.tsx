@@ -9,6 +9,7 @@ import {
   Clock,
   Hash,
   MemoryStick,
+  Loader2Icon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import { useParams } from "next/navigation";
 import { useFetchSource } from "@/module/sources/hooks/useFetchSource";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDate } from "@/lib/formate-date";
+import { useDeleteChunks } from "@/module/sources/hooks/useDeleteChunks";
 
 interface FAQItem {
   id: string;
@@ -30,7 +32,6 @@ export default function FAQManager() {
   const [question, setQuestion] = useState("");
   const [title, setTitle] = useState("");
   const [answer, setAnswer] = useState("");
-  const [faqs] = useState<FAQItem[]>([]);
   const { mutate, data, isPending, error } = useCreateChunks();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { agentId } = useParams<{ agentId: string }>();
@@ -57,7 +58,12 @@ export default function FAQManager() {
     setTitle("");
   };
 
-  const handleDelete = (id: string) => {};
+  const { mutate: deletionMutate, isPending: deletionLoading } =
+      useDeleteChunks();
+  
+    const handleDelete = (id: string) => {
+      deletionMutate({ sourceId: id });
+    };
 
   console.log(data);
 
@@ -168,7 +174,11 @@ export default function FAQManager() {
                           onClick={() => handleDelete(text._id)}
                           className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          {deletionLoading ? (
+                            <Loader2Icon className="animate-spin h-4 w-4" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
                           <span className="sr-only">Delete</span>
                         </Button>
                       </CardContent>

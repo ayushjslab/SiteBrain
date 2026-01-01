@@ -260,3 +260,70 @@ export async function deleteChunksBySourceId(sourceId: string) {
     };
   }
 }
+
+export async function retriveContextForQuery({
+  query,
+  workspaceId,
+  agentId,
+  topK = 5,
+}: {
+  query: string;
+  workspaceId: string;
+  agentId: string;
+  topK?: number;
+}) {
+  try {
+    // 1. Generate embedding
+    const { embedding } = await embed({
+      model: google.textEmbeddingModel("text-embedding-004"),
+      value: query,
+    });
+
+    await qdrant.createPayloadIndex("chunks", {
+      field_name: "workspaceId",
+      field_schema: "keyword",
+      wait: true,
+    });
+    const searchResults = await qdrant.search("chunks", {
+      vector: embedding,
+      limit: topK,
+      score_threshold: 0.7,
+      filter: {
+        must: [
+          { key: "workspaceId", match: { value: workspaceId } },
+          { key: "agentId", match: { value: agentId } },
+        ],
+      },
+    });
+
+    const context = searchResults
+      .filter((res) => res.payload?.text)
+      .map((result, index) => ({
+        rank: index + 1,
+        text: result.payload!.text as string,
+        score: result.score,
+        sourceId: result.payload!.sourceId as string,
+      }));
+
+    const contextString = context
+      .map((c) => `[${c.rank}] ${c.text}`)
+      .join("\n\n");
+
+    console.log(contextString);
+    return {
+      success: true,
+      context,
+      contextString,
+      sources: [...new Set(context.map((c) => c.sourceId))],
+    };
+  } catch (error: any) {
+    console.error(
+      "Qdrant detailed error:",
+      error.response?.data || error.data || error
+    );
+    return {
+      success: false,
+      error: "Failed to retrieve",
+    };
+  }
+}
