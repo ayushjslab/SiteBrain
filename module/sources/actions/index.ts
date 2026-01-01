@@ -1,7 +1,7 @@
 "use server";
 
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { embed } from "ai";
+import { embed, generateText } from "ai";
 import { google } from "@ai-sdk/google";
 import { connectDB } from "@/lib/connectDB";
 import Source from "@/models/source";
@@ -325,5 +325,56 @@ export async function retriveContextForQuery({
       success: false,
       error: "Failed to retrieve",
     };
+  }
+}
+
+export async function aiGeneratedText({
+  workspaceId,
+  agentId,
+  query,
+}: {
+  query: string;
+  workspaceId: string;
+  agentId: string;
+}) {
+  try {
+    const { contextString, sources } = await retriveContextForQuery({
+      workspaceId,
+      agentId,
+      query,
+    });
+
+    const hasContext = contextString && contextString.trim().length > 0;
+
+    const prompt = `
+      ### ROLE
+      You are a precise and helpful AI Assistant. Your goal is to answer the user's QUERY using ONLY the provided SOURCE segments.
+
+      ### CONSTRAINTS
+      1. ONLY use information from the SOURCE text below OR If you have answer the general quetion then give it.
+      2. If the answer is not contained within the SOURCE, explicitly state: "I'm sorry, I don't have enough information in my database to answer that."
+      3. Do NOT use outside knowledge or hallucinate facts.
+      4. Keep your tone professional and concise.
+      ### SOURCE MATERIAL
+      ${hasContext ? contextString : "NO SOURCE MATERIAL AVAILABLE"}
+
+      ### USER QUERY
+      ${query}
+
+      ### FINAL ANSWER:
+    `;
+
+    const { text } = await generateText({
+      model: google("gemini-2.5-flash-lite"),
+      prompt,
+      temperature: 0.1,
+    });
+
+    console.log(text);
+
+    return { text, sources };
+  } catch (error) {
+    console.error("AI Generation Error:", error);
+    return { error: "I encountered an error while generating a response." };
   }
 }

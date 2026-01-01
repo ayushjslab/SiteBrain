@@ -20,7 +20,7 @@ import { useParams } from "next/navigation";
 import { useFetchSource } from "@/module/sources/hooks/useFetchSource";
 import { formatDate } from "@/lib/formate-date";
 import { useDeleteChunks } from "@/module/sources/hooks/useDeleteChunks";
-import { useRetriveContext } from "@/module/sources/hooks/useRetriveContext";
+import { useAIGeneratedText } from "@/module/sources/hooks/useRetriveContext";
 
 interface SavedText {
   id: string;
@@ -52,7 +52,7 @@ export default function TextManager() {
     data: retriveData,
     refetch,
     error,
-  } = useRetriveContext({ workspaceId, agentId }, { enabled: false });
+  } = useAIGeneratedText({ workspaceId, agentId }, { enabled: false });
 
   const handleFetch = async () => {
     try {

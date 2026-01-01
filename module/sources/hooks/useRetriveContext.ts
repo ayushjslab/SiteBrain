@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { retriveContextForQuery, sourceFetching } from "../actions";
+import { aiGeneratedText } from "../actions";
 
-export function useRetriveContext({
+export function useAIGeneratedText({
   workspaceId, agentId,
 }: {
   workspaceId: string;
@@ -14,10 +14,10 @@ export function useRetriveContext({
   return useQuery({
     queryKey: ["sources"],
     queryFn: async () => {
-      return retriveContextForQuery({
+      return aiGeneratedText({
         workspaceId,
         agentId,
-        query: "When and where was Mahatma Gandhi born",
+        query: "When and where was Mahatma Gandhi Died",
       });
     },
     enabled: !!workspaceId && !!agentId
