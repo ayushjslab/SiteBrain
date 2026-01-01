@@ -14,7 +14,6 @@ const AgentInterface = () => {
     if (!input.trim()) return;
     setMessages([...messages, { role: 'user', content: input }]);
     setInput('');
-    // Simulate AI response
     setTimeout(() => {
       setMessages(prev => [...prev, { role: 'assistant', content: "I've received your instructions and I'm processing the request based on the current settings." }]);
     }, 600);
@@ -27,7 +26,7 @@ const AgentInterface = () => {
       <motion.section 
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
-        className="w-full md:w-[350px] border-b md:border-b-0 md:border-r border-gray-200 dark:border-zinc-800 p-6 flex flex-col gap-6"
+        className="w-full md:w-87.5 border-b md:border-b-0 md:border-r border-gray-200 dark:border-zinc-800 p-6 flex flex-col gap-6"
       >
         <div className="flex items-center gap-2 mb-4">
           <Settings className="w-5 h-5" />
@@ -82,7 +81,7 @@ const AgentInterface = () => {
       </motion.section>
 
       {/* RIGHT SECTION: CHAT */}
-      <section className="flex-1 flex flex-col h-[600px] md:h-screen relative bg-gray-50/50 dark:bg-zinc-950/30">
+      <section className="flex-1 flex flex-col h-150 md:h-screen relative bg-gray-50/50 dark:bg-zinc-950/30">
         
         {/* Chat Header */}
         <header className="p-4 border-b border-gray-200 dark:border-zinc-800 flex justify-between items-center bg-white dark:bg-black">
@@ -118,7 +117,7 @@ const AgentInterface = () => {
         </div>
 
         {/* Input Area */}
-        <div className="p-6 bg-gradient-to-t from-white dark:from-black to-transparent">
+        <div className="p-6 bg-linear-to-t from-white dark:from-black to-transparent">
           <div className="max-w-3xl mx-auto relative">
             <input 
               type="text"
