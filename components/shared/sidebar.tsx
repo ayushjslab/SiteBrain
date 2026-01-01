@@ -163,7 +163,7 @@ export function Sidebar() {
             open={open}
             icon={SiGoogledisplayandvideo360}
             label="Playground"
-            url="/dashboard/123/agents/123/playground"
+            url={`${BASE_PATH}/playground`}
           />
           {navItems.map((nav, index) => (
             <SidebarItemDropdown

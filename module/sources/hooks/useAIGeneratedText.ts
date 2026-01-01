@@ -2,10 +2,11 @@ import { useQuery } from "@tanstack/react-query";
 import { aiGeneratedText } from "../actions";
 
 export function useAIGeneratedText({
-  workspaceId, agentId,
+  workspaceId, agentId, query
 }: {
   workspaceId: string;
   agentId: string;
+  query: string;
 }, p0: { enabled: boolean; }) {
   if (!workspaceId || !agentId ) {
     throw new Error("Missing required fields");
@@ -17,7 +18,7 @@ export function useAIGeneratedText({
       return aiGeneratedText({
         workspaceId,
         agentId,
-        query: "When and where was Mahatma Gandhi Died",
+        query,
       });
     },
     enabled: !!workspaceId && !!agentId
